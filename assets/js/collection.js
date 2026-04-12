@@ -60,7 +60,7 @@ function renderSealedTable() {
         </div>
       </td>
       <td><span class="badge ${getBadgeType(item.type)}">${item.type}</span></td>
-      <td><span class="badge ${getLangBadge(item.langue)}">${item.langue}</span></td>
+      <td><span class="badge ${getLangBadge(item.langue)}">${getLangFlag(item.langue)}</span></td>
       <td style="font-weight:600;text-align:center">
         <div style="display:flex;align-items:center;gap:6px;justify-content:center">
           <button class="btn btn-ghost btn-sm btn-icon" onclick="changeStock('${item.id}', -1)" title="Retirer un exemplaire">−</button>

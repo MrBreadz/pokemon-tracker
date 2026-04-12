@@ -33,6 +33,7 @@
       <a class="nav-item" data-page="sealed"><span class="nav-icon">📦</span><span>Scellés</span><span class="nav-badge" id="badge-sealed">—</span></a>
       <a class="nav-item" data-page="graded"><span class="nav-icon">🏆</span><span>Cartes Gradées</span><span class="nav-badge" id="badge-graded">—</span></a>
       <a class="nav-item" data-page="chase"><span class="nav-icon">🌟</span><span>Chase Cards</span><span class="nav-badge" id="badge-chase">—</span></a>
+      <a class="nav-item" data-page="gallery"><span class="nav-icon">🖼️</span><span>Vitrine</span></a>
     </nav>
     <div class="sidebar-footer">
       <button class="theme-toggle" id="theme-toggle">
@@ -164,6 +165,17 @@
       <div class="chase-grid" id="chase-grid"></div>
     </div>
 
+
+    <!-- GALERIE VITRINE -->
+    <div class="page-section page-content" id="page-gallery" style="display:none">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Vitrine</div>
+          <div class="section-sub">Présentation visuelle de ta collection</div>
+        </div>
+      </div>
+      <div id="gallery-container"></div>
+    </div>
   </main>
 </div>
 
@@ -248,6 +260,7 @@
 <script src="./assets/js/collection.js"></script>
 <script src="./assets/js/cartes.js"></script>
 <script src="./assets/js/chase_export.js"></script>
+<script src="./assets/js/gallery.js"></script>
 <script type="module" src="./assets/js/firebase.js"></script>
 </body>
 </html>

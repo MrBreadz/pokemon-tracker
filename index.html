@@ -174,7 +174,11 @@
   <div class="modal">
     <div class="modal-header"><div class="modal-title" id="modal-sealed-title">Ajouter un article scellé</div><button class="modal-close" onclick="closeModal()">✕</button></div>
     <form id="form-sealed" onsubmit="return false">
-      <div class="form-group"><label class="form-label">Image</label><div class="photo-upload" id="sealed-img-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px"><div style="font-size:32px">📦</div><div style="color:var(--text-3);font-size:12px;margin-top:6px">Cliquez pour ajouter une image</div></div><input type="file" id="sealed-img-input" accept="image/*" style="display:none"></div>
+      <div class="form-group"><label class="form-label">Image</label><div class="photo-upload" id="sealed-img-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px"><div style="font-size:32px">📦</div><div style="color:var(--text-3);font-size:12px;margin-top:6px">Cliquez pour uploader</div></div><input type="file" id="sealed-img-input" accept="image/*" style="display:none">
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <input type="text" class="form-input" id="sealed-img-url" placeholder="Ou coller une URL d'image (https://...)">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="applyImageUrl('sealed')" style="flex-shrink:0">Appliquer</button>
+        </div></div>
       <div class="form-group"><label class="form-label">Nom *</label><input type="text" class="form-input" id="sealed-nom" placeholder="Ex: ETB EV10" required></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="sealed-type"><option>ETB</option><option>Display</option><option>Booster</option><option>Coffret</option><option>Coffret Ultra Premium</option><option>Bundle</option><option>Tinbox</option><option>Pokebox</option><option>Duo pack</option><option>Tri pack</option><option>Produit dérivé</option></select></div>
@@ -196,7 +200,11 @@
   <div class="modal">
     <div class="modal-header"><div class="modal-title" id="modal-graded-title">Ajouter une carte gradée</div><button class="modal-close" onclick="closeModal()">✕</button></div>
     <form id="form-graded" onsubmit="return false">
-      <div class="form-group"><label class="form-label">📷 Photo (numéro de certification visible)</label><div class="photo-upload" id="graded-photo-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px"><div style="font-size:40px">📷</div><div style="color:var(--text-3);font-size:12px;margin-top:8px">Cliquez pour uploader</div></div><input type="file" id="graded-photo-input" accept="image/*" style="display:none"></div>
+      <div class="form-group"><label class="form-label">📷 Photo (numéro de certification visible)</label><div class="photo-upload" id="graded-photo-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px"><div style="font-size:40px">📷</div><div style="color:var(--text-3);font-size:12px;margin-top:8px">Cliquez pour uploader</div></div><input type="file" id="graded-photo-input" accept="image/*" style="display:none">
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <input type="text" class="form-input" id="graded-img-url" placeholder="Ou coller une URL d'image (https://...)">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="applyImageUrl('graded')" style="flex-shrink:0">Appliquer</button>
+        </div></div>
       <div class="form-group"><label class="form-label">Nom *</label><input type="text" class="form-input" id="graded-nom" placeholder="Ex: Pikachu VMAX s8b" required></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Note</label><select class="form-select" id="graded-note"><option value="10">10</option><option value="9.5">9.5</option><option value="9">9</option><option value="8.5">8.5</option><option value="8">8</option><option value="7">7</option><option value="En cours">En cours</option></select></div>
@@ -221,7 +229,11 @@
   <div class="modal">
     <div class="modal-header"><div class="modal-title" id="modal-chase-title">Ajouter une chase card</div><button class="modal-close" onclick="closeModal()">✕</button></div>
     <form id="form-chase" onsubmit="return false">
-      <div class="form-group"><label class="form-label">Image</label><div class="photo-upload" id="chase-img-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px"><span style="font-size:36px">🃏</span><div style="color:var(--text-3);font-size:12px;margin-top:8px">Cliquez pour ajouter</div></div><input type="file" id="chase-img-input" accept="image/*" style="display:none"></div>
+      <div class="form-group"><label class="form-label">Image</label><div class="photo-upload" id="chase-img-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px"><span style="font-size:36px">🃏</span><div style="color:var(--text-3);font-size:12px;margin-top:8px">Cliquez pour uploader</div></div><input type="file" id="chase-img-input" accept="image/*" style="display:none">
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <input type="text" class="form-input" id="chase-img-url" placeholder="Ou coller une URL d'image (https://...)">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="applyImageUrl('chase')" style="flex-shrink:0">Appliquer</button>
+        </div></div>
       <div class="form-group"><label class="form-label">Nom *</label><input type="text" class="form-input" id="chase-nom" placeholder="Ex: Dracaufeu VMAX SWSH261" required></div>
       <div class="form-group"><label class="form-label">Statut</label><select class="form-select" id="chase-statut"><option value="À obtenir">À obtenir</option><option value="À grader">À grader</option><option value="Gradée">Gradée</option><option value="Obtenue">Obtenue</option><option value="Je ne sais pas">Je ne sais pas</option></select></div>
       <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="chase-notes" placeholder="Budget, priorité..."></textarea></div>

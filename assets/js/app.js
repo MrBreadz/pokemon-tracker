@@ -63,6 +63,10 @@ function getBadgeType(type) {
   return map[type] || 'badge-type';
 }
 function getLangBadge(l) { return l==='JAP'?'badge-jap':l==='FR'?'badge-fr':'badge-type'; }
+function getLangFlag(l) {
+  const flags = { 'FR':'🇫🇷', 'JAP':'🇯🇵', 'EN':'🇬🇧', 'CHI':'🇨🇳', 'KOR':'🇰🇷' };
+  return (flags[l] || '🌐') + ' ' + l;
+}
 function getTypeEmoji(t) {
   const m = {'ETB':'📦','Display':'📤','Booster':'🃏','Coffret':'🎁','Coffret Ultra Premium':'👑','Bundle':'🎴','Tinbox':'🥫','Pokebox':'📫','Duo pack':'2️⃣','Tri pack':'3️⃣','Produit dérivé':'🎮'};
   return m[t] || '📦';

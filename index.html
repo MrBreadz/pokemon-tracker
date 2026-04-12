@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>PokéTracker</title>
+  <meta name="theme-color" content="#0D0D0F">
+  <link rel="stylesheet" href="./assets/css/main.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge">
+        <div class="logo-icon">⚡</div>
+        <div>
+          <div class="logo-text">PokéTracker</div>
+          <div class="logo-sub">Collection Manager</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Vue d'ensemble</div>
+      <a class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+      <div class="nav-section-title">Ma Collection</div>
+      <a class="nav-item" data-page="sealed"><span class="nav-icon">📦</span><span>Scellés</span><span class="nav-badge" id="badge-sealed">—</span></a>
+      <a class="nav-item" data-page="graded"><span class="nav-icon">🏆</span><span>Cartes Gradées</span><span class="nav-badge" id="badge-graded">—</span></a>
+      <a class="nav-item" data-page="chase"><span class="nav-icon">🌟</span><span>Chase Cards</span><span class="nav-badge" id="badge-chase">—</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="theme-toggle" id="theme-toggle">
+        <span id="theme-icon">🌙</span><span>Thème</span><div class="toggle-pill"></div>
+      </button>
+      <button class="btn btn-secondary" style="width:100%;justify-content:center" id="btn-export">📥 Exporter Excel</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="topbar">
+      <button class="hamburger" id="hamburger">☰</button>
+      <div class="topbar-title" id="topbar-title">📊 Dashboard</div>
+      <div class="topbar-right">
+        <div id="sync-status"><span style="color:var(--text-3);font-size:12px;font-weight:500">🔄 Connexion...</span></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page-section page-content" id="page-dashboard">
+      <div class="welcome-banner">
+        <div>
+          <div class="welcome-title">Ma Collection Pokémon ⚡</div>
+          <div class="welcome-sub">Suivi en temps réel de votre investissement</div>
+        </div>
+        <div class="value-pill">
+          <div class="value-pill-amount" id="banner-val">—</div>
+          <div class="value-pill-label">Valeur investie</div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card accent-gold"><div class="stat-icon">💰</div><div class="stat-value" id="dash-val-achat">—</div><div class="stat-label">Valeur achat totale</div></div>
+        <div class="stat-card accent-fire"><div class="stat-icon">📈</div><div class="stat-value" id="dash-val-marche">—</div><div class="stat-label">Valeur marché</div><div id="dash-trend"></div></div>
+        <div class="stat-card accent-blue"><div class="stat-icon">📦</div><div class="stat-value" id="dash-items">—</div><div class="stat-label">Items scellés</div></div>
+        <div class="stat-card accent-gold"><div class="stat-icon">🏆</div><div class="stat-value" id="dash-graded">—</div><div class="stat-label">Cartes gradées</div></div>
+        <div class="stat-card accent-green"><div class="stat-icon">🌟</div><div class="stat-value" id="dash-chase">—</div><div class="stat-label">Chase cards</div></div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Évolution valeur investie</div><div class="chart-subtitle">Cumul achats dans le temps</div></div></div><div style="height:220px"><canvas id="chart-evolution"></canvas></div></div>
+        <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Valeur par langue</div><div class="chart-subtitle">Investissement scellés</div></div></div><div style="height:220px"><canvas id="chart-lang"></canvas></div></div>
+        <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Gradeurs</div><div class="chart-subtitle">Distribution des cartes</div></div></div><div style="height:220px"><canvas id="chart-gradeur"></canvas></div></div>
+      </div>
+      <div class="charts-grid" style="grid-template-columns:1.5fr 1fr">
+        <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Valeur investie par catégorie</div><div class="chart-subtitle">Toute la collection</div></div></div><div style="height:260px"><canvas id="chart-valtype"></canvas></div></div>
+        <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Top 8 items les plus chers</div><div class="chart-subtitle"><span style="color:#E8B422">■</span> Gradée &nbsp;<span style="color:#007AFF">■</span> Scellé</div></div></div><div style="height:260px"><canvas id="chart-topval"></canvas></div></div>
+      </div>
+      <div class="card"><div class="card-title">Derniers ajouts</div><div id="recent-list"></div></div>
+    </div>
+
+    <!-- SCELLÉS -->
+    <div class="page-section page-content" id="page-sealed" style="display:none">
+      <div class="section-header">
+        <div><div class="section-title">Collection Scellée</div><div class="section-sub">Boosters, ETB, Displays, Coffrets et plus</div></div>
+        <button class="btn btn-primary" id="btn-add-sealed">+ Ajouter</button>
+      </div>
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value" id="sealed-count">—</div><div class="stat-label">Items au total</div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="sealed-val-achat">—</div><div class="stat-label">Valeur achat</div></div>
+        <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-value" id="sealed-val-marche">—</div><div class="stat-label">Valeur marché</div></div>
+        <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-value" id="sealed-types">—</div><div class="stat-label">Types différents</div></div>
+      </div>
+      <div class="filters-bar">
+        <div class="search-wrap" style="flex:1;min-width:180px"><span class="search-icon">🔍</span><input type="text" class="search-input" id="search-sealed" placeholder="Rechercher..."></div>
+        <select class="filter-select" id="filter-sealed-type" style="flex:0 0 auto"><option value="">Tous les types</option></select>
+        <select class="filter-select" id="filter-sealed-lang" style="flex:0 0 auto"><option value="">Toutes langues</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-sort-sealed="nom">Article ↕</th>
+            <th data-sort-sealed="type">Type ↕</th>
+            <th data-sort-sealed="langue">Langue ↕</th>
+            <th style="text-align:center" data-sort-sealed="stock">Stock ↕</th>
+            <th data-sort-sealed="prixAchat">Prix unit. ↕</th>
+            <th>Valeur achat</th>
+            <th>Prix marché</th>
+            <th>P&amp;L</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="sealed-tbody"><tr><td colspan="9" style="text-align:center;padding:40px"><div class="loading-spinner" style="margin:0 auto"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CARTES GRADÉES -->
+    <div class="page-section page-content" id="page-graded" style="display:none">
+      <div class="section-header">
+        <div><div class="section-title">Cartes Gradées</div><div class="section-sub">PSA, CGC, PCA, Collect Aura et autres gradeurs</div></div>
+        <button class="btn btn-primary" id="btn-add-graded">+ Ajouter</button>
+      </div>
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-value" id="graded-count">—</div><div class="stat-label">Cartes gradées</div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="graded-val-achat">—</div><div class="stat-label">Valeur achat</div></div>
+        <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-value" id="graded-val-marche">—</div><div class="stat-label">Valeur marché</div></div>
+        <div class="stat-card"><div class="stat-icon">🔵</div><div class="stat-value" id="graded-psa">—</div><div class="stat-label">PSA</div></div>
+        <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value" id="graded-10">—</div><div class="stat-label">Notes 10</div></div>
+      </div>
+      <div class="filters-bar">
+        <div class="search-wrap" style="flex:1;min-width:180px"><span class="search-icon">🔍</span><input type="text" class="search-input" id="search-graded" placeholder="Rechercher..."></div>
+        <select class="filter-select" id="filter-graded-gradeur" style="flex:0 0 auto"><option value="">Tous gradeurs</option></select>
+        <select class="filter-select" id="filter-graded-note" style="flex:0 0 auto"><option value="">Toutes notes</option><option value="10">Note 10</option><option value="9+">Note 9+</option><option value="ec">En cours</option></select>
+        <select class="filter-select" id="filter-graded-lang" style="flex:0 0 auto"><option value="">Toutes langues</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Photo</th>
+            <th data-sort-graded="nom">Carte ↕</th>
+            <th data-sort-graded="note">Note ↕</th>
+            <th data-sort-graded="gradeur">Gradeur ↕</th>
+            <th data-sort-graded="langue">Langue ↕</th>
+            <th data-sort-graded="prixAchat">Prix achat ↕</th>
+            <th>Prix marché</th>
+            <th>P&amp;L</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="graded-tbody"><tr><td colspan="9" style="text-align:center;padding:40px"><div class="loading-spinner" style="margin:0 auto"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CHASE CARDS -->
+    <div class="page-section page-content" id="page-chase" style="display:none">
+      <div class="section-header">
+        <div><div class="section-title">Chase Cards</div><div class="section-sub">Cartes à obtenir ou en attente</div></div>
+        <button class="btn btn-primary" onclick="openAddChase()">+ Ajouter</button>
+      </div>
+      <div class="chase-grid" id="chase-grid"></div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<!-- MODAL SCELLÉ -->
+<div class="modal-overlay" id="modal-sealed" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-sealed-title">Ajouter un article scellé</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form id="form-sealed" onsubmit="return false">
+      <div class="form-group"><label class="form-label">Image</label><div class="photo-upload" id="sealed-img-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px"><div style="font-size:32px">📦</div><div style="color:var(--text-3);font-size:12px;margin-top:6px">Cliquez pour ajouter une image</div></div><input type="file" id="sealed-img-input" accept="image/*" style="display:none"></div>
+      <div class="form-group"><label class="form-label">Nom *</label><input type="text" class="form-input" id="sealed-nom" placeholder="Ex: ETB EV10" required></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="sealed-type"><option>ETB</option><option>Display</option><option>Booster</option><option>Coffret</option><option>Coffret Ultra Premium</option><option>Bundle</option><option>Tinbox</option><option>Pokebox</option><option>Duo pack</option><option>Tri pack</option><option>Produit dérivé</option></select></div>
+        <div class="form-group"><label class="form-label">Langue</label><select class="form-select" id="sealed-langue"><option value="FR">FR - Français</option><option value="JAP">JAP - Japonais</option><option value="EN">EN - Anglais</option><option value="CHI">CHI - Chinois</option><option value="KOR">KOR - Coréen</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Prix achat unitaire (€)</label><input type="number" class="form-input" id="sealed-prix-achat" step="0.01" min="0" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">Prix marché (€)</label><input type="number" class="form-input" id="sealed-prix-marche" step="0.01" min="0" placeholder="optionnel"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Quantité</label><input type="number" class="form-input" id="sealed-stock" min="0" value="1"></div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="sealed-notes" placeholder="Notes..."></textarea></div>
+      <div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button><button type="button" class="btn btn-primary" id="btn-save-sealed">💾 Enregistrer</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL CARTE GRADÉE -->
+<div class="modal-overlay" id="modal-graded" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-graded-title">Ajouter une carte gradée</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form id="form-graded" onsubmit="return false">
+      <div class="form-group"><label class="form-label">📷 Photo (numéro de certification visible)</label><div class="photo-upload" id="graded-photo-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px"><div style="font-size:40px">📷</div><div style="color:var(--text-3);font-size:12px;margin-top:8px">Cliquez pour uploader</div></div><input type="file" id="graded-photo-input" accept="image/*" style="display:none"></div>
+      <div class="form-group"><label class="form-label">Nom *</label><input type="text" class="form-input" id="graded-nom" placeholder="Ex: Pikachu VMAX s8b" required></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Note</label><select class="form-select" id="graded-note"><option value="10">10</option><option value="9.5">9.5</option><option value="9">9</option><option value="8.5">8.5</option><option value="8">8</option><option value="7">7</option><option value="En cours">En cours</option></select></div>
+        <div class="form-group"><label class="form-label">Gradeur</label><input type="text" class="form-input" id="graded-gradeur" list="gradeurs-list" placeholder="PSA, CGC..."><datalist id="gradeurs-list"><option value="PSA"><option value="CGC"><option value="PCA"><option value="Collect Aura"><option value="Ace Grading"><option value="SFG"><option value="BGS"></datalist></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Langue</label><select class="form-select" id="graded-langue"><option value="JAP">JAP</option><option value="FR">FR</option><option value="EN">EN</option></select></div>
+        <div class="form-group"><label class="form-label">N° certification</label><input type="text" class="form-input" id="graded-numero" placeholder="12345678"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Prix achat (€)</label><input type="number" class="form-input" id="graded-prix-achat" step="0.01" min="0" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">Prix marché (€)</label><input type="number" class="form-input" id="graded-prix-marche" step="0.01" min="0" placeholder="optionnel"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="graded-notes" placeholder="Notes..."></textarea></div>
+      <div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button><button type="button" class="btn btn-primary" id="btn-save-graded">💾 Enregistrer</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL CHASE CARD -->
+<div class="modal-overlay" id="modal-chase" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-chase-title">Ajouter une chase card</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form id="form-chase" onsubmit="return false">
+      <div class="form-group"><label class="form-label">Image</label><div class="photo-upload" id="chase-img-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px"><span style="font-size:36px">🃏</span><div style="color:var(--text-3);font-size:12px;margin-top:8px">Cliquez pour ajouter</div></div><input type="file" id="chase-img-input" accept="image/*" style="display:none"></div>
+      <div class="form-group"><label class="form-label">Nom *</label><input type="text" class="form-input" id="chase-nom" placeholder="Ex: Dracaufeu VMAX SWSH261" required></div>
+      <div class="form-group"><label class="form-label">Statut</label><select class="form-select" id="chase-statut"><option value="À obtenir">À obtenir</option><option value="À grader">À grader</option><option value="Gradée">Gradée</option><option value="Obtenue">Obtenue</option><option value="Je ne sais pas">Je ne sais pas</option></select></div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="chase-notes" placeholder="Budget, priorité..."></textarea></div>
+      <div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button><button type="button" class="btn btn-primary" id="btn-save-chase">💾 Enregistrer</button></div>
+    </form>
+  </div>
+</div>
+
+<script src="./assets/js/data.js"></script>
+<script src="./assets/js/app.js"></script>
+<script src="./assets/js/dashboard.js"></script>
+<script src="./assets/js/collection.js"></script>
+<script src="./assets/js/cartes.js"></script>
+<script src="./assets/js/chase_export.js"></script>
+<script type="module" src="./assets/js/firebase.js"></script>
+</body>
+</html>

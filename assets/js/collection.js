@@ -72,9 +72,8 @@ function renderSealedTable() {
       <td style="font-weight:600">${formatPrice(item.prixAchat * item.stock)}</td>
       <td>
         <div style="display:flex;align-items:center;gap:6px">
-          ${item.prixMarche ? `<span style="font-weight:600">${formatPrice(item.prixMarche)}</span>` : '<span style="color:var(--text-3)">—</span>'}
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="updatePrixMarche('${item.id}', 'sealed')" title="Mettre à jour le prix">✏️</button>
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="fetchPrixAuto('${item.id}')" title="Chercher le prix auto">🔄</button>
+          <span style="font-weight:600;cursor:pointer;min-width:40px" onclick="inlineEditPrix('${item.id}','sealed',this)" title="Cliquer pour modifier">${item.prixMarche ? formatPrice(item.prixMarche) : '<span style=\"color:var(--text-3)\">— Saisir</span>'}</span>
+          <a href="https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(item.nom)}" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Voir sur CardMarket">🛒</a>
         </div>
       </td>
       <td>${diff}</td>
@@ -258,3 +257,64 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-add-sealed')?.addEventListener('click', openAddSealed);
   document.getElementById('btn-save-sealed')?.addEventListener('click', saveSealed);
 });
+
+function inlineEditPrix(id, collection, el) {
+  const data = collection === 'sealed' ? APP.data.sealed : APP.data.graded;
+  const item = data.find(i => i.id === id);
+  if (!item) return;
+  const current = item.prixMarche || '';
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.step = '0.01';
+  input.min = '0';
+  input.value = current;
+  input.style.cssText = 'width:80px;padding:3px 6px;border-radius:6px;border:1px solid var(--accent);background:var(--input-bg);color:var(--text);font-size:13px;font-weight:600;outline:none';
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+  const save = () => {
+    const val = parseFloat(input.value.replace(',', '.'));
+    if (!isNaN(val) && val >= 0) {
+      item.prixMarche = val;
+      saveData();
+      showToast('Prix mis à jour ✓', 'success');
+    }
+    renderSealedTable();
+  };
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { input.blur(); } if (e.key === 'Escape') { renderSealedTable(); } });
+}
+
+// ===== APPLY IMAGE URL =====
+function applyImageUrl(type) {
+  const urlMap = { sealed: 'sealed-img-url', graded: 'graded-img-url', chase: 'chase-img-url' };
+  const previewMap = { sealed: 'sealed-img-preview', graded: 'graded-photo-preview', chase: 'chase-img-preview' };
+  const urlInput = document.getElementById(urlMap[type]);
+  const preview = document.getElementById(previewMap[type]);
+  if (!urlInput || !preview) return;
+  const url = urlInput.value.trim();
+  if (!url || !url.startsWith('http')) { showToast('URL invalide — doit commencer par https://', 'error'); return; }
+
+  // Tester que l'image se charge bien
+  const img = new Image();
+  img.onload = () => {
+    preview.innerHTML = '<img src="' + url + '" style="max-width:100%;max-height:200px;border-radius:8px;object-fit:cover">';
+    preview.classList.add('has-image');
+    preview.dataset.pendingImage = url;
+    // Si on est en mode édition, sauvegarder directement
+    if (type === 'sealed' && typeof editingSealedId !== 'undefined' && editingSealedId) {
+      const item = APP.data.sealed.find(i => i.id === editingSealedId);
+      if (item) { item.image = url; saveData(); }
+    } else if (type === 'graded' && typeof editingGradedId !== 'undefined' && editingGradedId) {
+      const item = APP.data.graded.find(i => i.id === editingGradedId);
+      if (item) { item.photo = url; saveData(); }
+    } else if (type === 'chase' && typeof editingChaseId !== 'undefined' && editingChaseId) {
+      const item = APP.data.chase.find(i => i.id === editingChaseId);
+      if (item) { item.image = url; saveData(); }
+    }
+    showToast('Image appliquée ✓', 'success');
+    urlInput.value = '';
+  };
+  img.onerror = () => { showToast("Impossible de charger cette image — vérifie l'URL", 'error'); };
+  img.src = url;
+}

@@ -269,8 +269,7 @@ body {
   margin-left: 240px;
   flex: 1;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
 .topbar {
@@ -309,10 +308,9 @@ body {
 }
 
 .page-section {
-  display: none;
-  flex-direction: column;
   width: 100%;
   min-height: 0;
+  overflow: auto;
 }
 
 /* ===== CARDS ===== */

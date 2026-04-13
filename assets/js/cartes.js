@@ -39,6 +39,15 @@ function renderGradedTable() {
   const tbody = document.getElementById('graded-tbody');
   if (!tbody) return;
   const data = getFilteredGraded();
+
+  // Indicateurs de tri
+  document.querySelectorAll('th[data-sort-graded]').forEach(th => {
+    th.classList.remove('sorted-asc','sorted-desc');
+    if (th.dataset.sortGraded === gradedSort.key) {
+      th.classList.add(gradedSort.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+    }
+  });
+
   populateGradedFilters();
 
   if (data.length === 0) {
@@ -53,7 +62,10 @@ function renderGradedTable() {
   tbody.innerHTML = data.map(item => {
     const diff = formatPriceDiff(item.prixAchat, item.prixMarche);
     const photoHtml = item.photo
-      ? `<img src="${item.photo}" alt="${item.nom}" style="width:48px;height:68px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer" onclick="openPhotoZoom('${item.id}')">`
+      ? `<div style="position:relative;display:inline-block">
+          <img src="${item.photo}" alt="${item.nom}" style="width:48px;height:68px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer" onclick="openPhotoZoom('${item.id}')">
+          <button onclick="event.stopPropagation();deleteItemImage('${item.id}','graded')" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#FF453A;border:none;cursor:pointer;font-size:9px;color:#fff;display:flex;align-items:center;justify-content:center;line-height:1" title="Supprimer la photo">✕</button>
+         </div>`
       : `<div style="width:48px;height:68px;border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:var(--bg-2)" onclick="triggerPhotoUpload('${item.id}')" title="Ajouter une photo">📷</div>`;
 
     const noteVal = parseFloat(item.note);
@@ -77,9 +89,8 @@ function renderGradedTable() {
       <td style="font-weight:600">${formatPrice(item.prixAchat)}</td>
       <td>
         <div style="display:flex;align-items:center;gap:6px">
-          ${item.prixMarche ? `<span style="font-weight:600">${formatPrice(item.prixMarche)}</span>` : '<span style="color:var(--text-3)">—</span>'}
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="updatePrixMarche('${item.id}', 'graded')" title="Saisir manuellement">✏️</button>
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="window.fetchPrixMarcheAuto && window.fetchPrixMarcheAuto('${item.id}', 'graded')" title="Chercher le prix auto">🔄</button>
+          <span style="font-weight:600;cursor:pointer;min-width:40px" onclick="inlineEditPrix('${item.id}','graded',this)" title="Cliquer pour modifier">${item.prixMarche ? formatPrice(item.prixMarche) : '<span style=\"color:var(--text-3)\">— Saisir</span>'}</span>
+          <a href="https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(item.nom.split(' ').slice(0,3).join(' '))}" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Voir sur CardMarket">🛒</a>
         </div>
       </td>
       <td>${diff}</td>
@@ -235,3 +246,30 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-add-graded')?.addEventListener('click', openAddGraded);
   document.getElementById('btn-save-graded')?.addEventListener('click', saveGraded);
 });
+
+function inlineEditPrix(id, collection, el) {
+  const data = collection === 'graded' ? APP.data.graded : APP.data.sealed;
+  const item = data.find(i => i.id === id);
+  if (!item) return;
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.step = '0.01';
+  input.min = '0';
+  input.value = item.prixMarche || '';
+  input.style.cssText = 'width:80px;padding:3px 6px;border-radius:6px;border:1px solid var(--accent);background:var(--input-bg);color:var(--text);font-size:13px;font-weight:600;outline:none';
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+  const save = () => {
+    const val = parseFloat(input.value.replace(',', '.'));
+    if (!isNaN(val) && val >= 0) {
+      item.prixMarche = val;
+      saveData();
+      showToast('Prix mis à jour ✓', 'success');
+    }
+    if (collection === 'graded') renderGradedTable();
+    else renderSealedTable();
+  };
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { if (collection === 'graded') renderGradedTable(); else renderSealedTable(); } });
+}

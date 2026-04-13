@@ -74,7 +74,7 @@
       </div>
       <div class="charts-grid">
         <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Évolution valeur investie</div><div class="chart-subtitle">Cumul achats dans le temps</div></div></div><div style="height:220px"><canvas id="chart-evolution"></canvas></div></div>
-        <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Valeur par langue</div><div class="chart-subtitle">Investissement scellés</div></div></div><div style="height:220px"><canvas id="chart-lang"></canvas></div></div>
+        <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Valeur par langue</div><div class="chart-subtitle">Scellés + Gradées</div></div></div><div style="height:220px"><canvas id="chart-lang"></canvas></div></div>
         <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Gradeurs</div><div class="chart-subtitle">Distribution des cartes</div></div></div><div style="height:220px"><canvas id="chart-gradeur"></canvas></div></div>
       </div>
       <div class="charts-grid" style="grid-template-columns:1.5fr 1fr">
@@ -166,15 +166,9 @@
     </div>
 
 
-    <!-- GALERIE VITRINE -->
-    <div class="page-section page-content" id="page-gallery" style="display:none">
-      <div class="section-header">
-        <div>
-          <div class="section-title">Vitrine</div>
-          <div class="section-sub">Présentation visuelle de ta collection</div>
-        </div>
-      </div>
-      <div id="gallery-container"></div>
+    <!-- VITRINE PREMIUM -->
+    <div class="page-section" id="page-gallery" style="display:none;padding:0">
+      <div id="gallery-container" style="min-height:100vh"></div>
     </div>
   </main>
 </div>
@@ -250,6 +244,57 @@
       <div class="form-group"><label class="form-label">Statut</label><select class="form-select" id="chase-statut"><option value="À obtenir">À obtenir</option><option value="À grader">À grader</option><option value="Gradée">Gradée</option><option value="Obtenue">Obtenue</option><option value="Je ne sais pas">Je ne sais pas</option></select></div>
       <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="chase-notes" placeholder="Budget, priorité..."></textarea></div>
       <div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button><button type="button" class="btn btn-primary" id="btn-save-chase">💾 Enregistrer</button></div>
+    </form>
+  </div>
+</div>
+
+
+<!-- MODAL GALERIE ITEM -->
+<div class="modal-overlay" id="modal-gallery" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Ajouter à la vitrine</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form onsubmit="return false">
+      <div class="form-group">
+        <label class="form-label">Image</label>
+        <div class="photo-upload" id="gi-img-preview" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px">
+          <div style="font-size:32px">🖼️</div>
+          <div style="color:var(--text-3);font-size:12px;margin-top:6px">Cliquez pour uploader</div>
+        </div>
+        <input type="file" id="gi-img-input" accept="image/*" style="display:none">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" class="form-input" id="gi-img-url" placeholder="Ou coller une URL (https://...)">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="applyGalleryImageUrl()" style="flex-shrink:0">Appliquer</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nom *</label>
+        <input type="text" class="form-input" id="gi-nom" placeholder="Ex: Pikachu VMAX PSA 10" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Catégorie</label>
+          <select class="form-select" id="gi-cat">
+            <option value="graded">🏆 Carte gradée</option>
+            <option value="sealed">📦 Produit scellé</option>
+            <option value="rare">💎 Pièce rare</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prix (€)</label>
+          <input type="number" class="form-input" id="gi-prix" step="0.01" min="0" placeholder="optionnel">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="gi-notes" placeholder="Description, anecdote..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="button" class="btn btn-primary" id="btn-save-gallery-item">💾 Ajouter à la vitrine</button>
+      </div>
     </form>
   </div>
 </div>

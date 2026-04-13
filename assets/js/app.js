@@ -85,9 +85,46 @@ function sortTable(data, key, dir) {
     return dir==='asc'?String(va).localeCompare(String(vb),'fr'):String(vb).localeCompare(String(va),'fr');
   });
 }
-function imageToBase64(file) {
-  return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file);});
+
+// ===== IMAGE COMPRESSION (évite QuotaExceededError) =====
+function compressImage(file, maxWidth=800, quality=0.7) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
+
+// Remplace imageToBase64 par version compressée
+async function imageToBase64(file) {
+  return await compressImage(file, 800, 0.7);
+}
+
+// Supprimer image d'un item
+function deleteItemImage(id, collection) {
+  const data = collection === 'sealed' ? APP.data.sealed : collection === 'graded' ? APP.data.graded : APP.data.chase;
+  const item = data.find(i => i.id === id);
+  if (!item) return;
+  if (!confirm('Supprimer cette image ?')) return;
+  if (collection === 'graded') item.photo = null;
+  else item.image = null;
+  saveData();
+  renderPage(APP.currentPage);
+  showToast('Image supprimée ✓', 'success');
+}
+
 
 // ===== NAVIGATION =====
 function navigate(page) {

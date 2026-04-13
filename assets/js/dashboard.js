@@ -86,7 +86,10 @@ function renderLangChart() {
   const ctx = document.getElementById('chart-lang');
   if (!ctx) return;
   const counts = {};
+  // Scellés
   APP.data.sealed.forEach(i=>{ counts[i.langue]=(counts[i.langue]||0)+(i.prixAchat*i.stock); });
+  // Cartes gradées
+  APP.data.graded.forEach(i=>{ counts[i.langue]=(counts[i.langue]||0)+i.prixAchat; });
   const c = getChartColors();
   dashCharts.lang = new Chart(ctx, {
     type: 'bar',

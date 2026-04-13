@@ -34,6 +34,14 @@ function renderSealedTable() {
   if (!tbody) return;
   const data = getFilteredSealed();
 
+  // Mettre à jour indicateurs de tri
+  document.querySelectorAll('th[data-sort-sealed]').forEach(th => {
+    th.classList.remove('sorted-asc','sorted-desc');
+    if (th.dataset.sortSealed === sealedSort.key) {
+      th.classList.add(sealedSort.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+    }
+  });
+
   // Populate filters
   populateSealedFilters();
 
@@ -49,7 +57,10 @@ function renderSealedTable() {
   tbody.innerHTML = data.map(item => {
     const diff = formatPriceDiff(item.prixAchat * item.stock, item.prixMarche ? item.prixMarche * item.stock : null);
     const imgHtml = item.image
-      ? `<img src="${item.image}" alt="${item.nom}" onerror="this.style.display='none'">`
+      ? `<div style="position:relative;display:inline-block">
+          <img src="${item.image}" alt="${item.nom}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none'">
+          <button onclick="event.stopPropagation();deleteItemImage('${item.id}','sealed')" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#FF453A;border:none;cursor:pointer;font-size:9px;color:#fff;display:flex;align-items:center;justify-content:center;line-height:1" title="Supprimer l'image">✕</button>
+         </div>`
       : `<div class="td-img-placeholder">${getTypeEmoji(item.type)}</div>`;
 
     return `<tr>

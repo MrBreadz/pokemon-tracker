@@ -16,11 +16,24 @@ function renderDashboardStats() {
 
   const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
   set('banner-val', formatPrice(valAchat));
+  const bannerMarche = document.getElementById('banner-val-marche');
+  if (bannerMarche) bannerMarche.textContent = hasMarche ? formatPrice(valMarche) : '—';
   set('dash-val-achat', formatPrice(valAchat));
   set('dash-val-marche', hasMarche ? formatPrice(valMarche) : '—');
   set('dash-items', APP.data.sealed.reduce((s,i)=>s+i.stock,0));
+  // Plus-value latente
+  const hasMarcheForPV = APP.data.sealed.some(i=>i.prixMarche) || APP.data.graded.some(i=>i.prixMarche);
+  if (hasMarcheForPV) {
+    const pv = getTotalValue('marche') - getTotalValue('achat');
+    const pvEl = document.getElementById('dash-plusvalue');
+    if (pvEl) {
+      pvEl.textContent = formatPrice(pv);
+      pvEl.style.color = pv >= 0 ? 'var(--positive)' : 'var(--negative)';
+    }
+  } else {
+    set('dash-plusvalue', '—');
+  }
   set('dash-graded', APP.data.graded.length);
-  set('dash-chase', APP.data.chase.length);
 
   const trendEl = document.getElementById('dash-trend');
   if (trendEl) {

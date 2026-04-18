@@ -65,7 +65,8 @@ function getBadgeType(type) {
 function getLangBadge(l) { return l==='JAP'?'badge-jap':l==='FR'?'badge-fr':'badge-type'; }
 function getLangFlag(l) {
   const flags = { 'FR':'🇫🇷', 'JAP':'🇯🇵', 'EN':'🇬🇧', 'CHI':'🇨🇳', 'KOR':'🇰🇷' };
-  return (flags[l] || '🌐') + ' ' + l;
+  const flag = flags[l] || '🌐';
+  return '<span style="font-size:16px;line-height:1">' + flag + '</span>';
 }
 function getTypeEmoji(t) {
   const m = {'ETB':'📦','Display':'📤','Booster':'🃏','Coffret':'🎁','Coffret Ultra Premium':'👑','Bundle':'🎴','Tinbox':'🥫','Pokebox':'📫','Duo pack':'2️⃣','Tri pack':'3️⃣','Produit dérivé':'🎮'};

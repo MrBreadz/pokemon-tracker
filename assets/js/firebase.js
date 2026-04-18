@@ -57,16 +57,30 @@ async function loadFromFirebase() {
     const snap = await get(ref(db, 'collection'));
     if (snap.exists()) {
       const remote = snap.val();
-      if (Array.isArray(remote.sealed)) APP.data.sealed = remote.sealed;
-      if (Array.isArray(remote.graded)) APP.data.graded = remote.graded;
-      if (Array.isArray(remote.chase))  APP.data.chase  = remote.chase;
-      // Mettre à jour le localStorage
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(APP.data));
-      setSyncStatus('synced');
-      // Re-rendre la page courante avec les données Firebase
-      renderPage(APP.currentPage);
-      updateNavBadges();
-      showToast('Collection chargée ☁️', 'success');
+      // PROTECTION : ne charger que si Firebase a plus de données que le local
+      // Compter les items Firebase
+      const fbSealed = Array.isArray(remote.sealed) ? remote.sealed.length : 0;
+      const fbGraded = Array.isArray(remote.graded) ? remote.graded.length : 0;
+      const localSealed = Array.isArray(APP.data.sealed) ? APP.data.sealed.length : 0;
+      const localGraded = Array.isArray(APP.data.graded) ? APP.data.graded.length : 0;
+
+      // Si Firebase a des vraies données (pas juste les initiales vides ou moins que local)
+      // On fait confiance à Firebase s'il a des données ET que lastUpdated existe
+      const hasRealData = remote.lastUpdated && (fbSealed > 0 || fbGraded > 0);
+
+      if (hasRealData) {
+        if (Array.isArray(remote.sealed)) APP.data.sealed = remote.sealed;
+        if (Array.isArray(remote.graded)) APP.data.graded = remote.graded;
+        if (Array.isArray(remote.chase))  APP.data.chase  = remote.chase;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(APP.data));
+        setSyncStatus('synced');
+        renderPage(APP.currentPage);
+        updateNavBadges();
+        showToast('Collection chargée ☁️', 'success');
+      } else {
+        // Firebase vide ou corrompu → pousser les données locales
+        await window.firebaseSave();
+      }
     } else {
       // Première utilisation : pousser les données locales
       await window.firebaseSave();
@@ -75,6 +89,39 @@ async function loadFromFirebase() {
     console.error('Firebase load error:', e);
     setSyncStatus('offline');
     showToast('Mode local activé', 'info');
+  }
+}
+
+// SAUVEGARDE EXCEL JOURNALIÈRE
+async function autoBackupExcel() {
+  const today = new Date().toISOString().slice(0,10);
+  const lastBackup = localStorage.getItem('pkm_last_backup');
+  if (lastBackup === today) return; // Déjà fait aujourd'hui
+
+  // Attendre que les données soient chargées
+  await new Promise(r => setTimeout(r, 3000));
+
+  try {
+    const { utils, writeFile } = XLSX;
+    const wb = utils.book_new();
+
+    const sealedData = [
+      ['Nom','Type','Langue','Stock','Prix achat','Valeur achat','Prix marché','Notes'],
+      ...APP.data.sealed.map(i => [i.nom,i.type,i.langue,i.stock,i.prixAchat,i.prixAchat*i.stock,i.prixMarche||'',i.notes||''])
+    ];
+    utils.book_append_sheet(wb, utils.aoa_to_sheet(sealedData), 'Scellés');
+
+    const gradedData = [
+      ['Nom','Note','Gradeur','Langue','Prix achat','Prix marché','N° certif','Notes'],
+      ...APP.data.graded.map(i => [i.nom,i.note,i.gradeur,i.langue,i.prixAchat,i.prixMarche||'',i.numero||'',i.notes||''])
+    ];
+    utils.book_append_sheet(wb, utils.aoa_to_sheet(gradedData), 'Gradées');
+
+    writeFile(wb, 'PokéTracker_Backup_' + today + '.xlsx');
+    localStorage.setItem('pkm_last_backup', today);
+    showToast('📥 Sauvegarde Excel du jour téléchargée', 'success', 5000);
+  } catch(e) {
+    console.error('Backup error:', e);
   }
 }
 
@@ -111,6 +158,7 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     await loadFromFirebase();
     setTimeout(startRealtime, 3000);
+    setTimeout(autoBackupExcel, 5000);
   }
 });
 

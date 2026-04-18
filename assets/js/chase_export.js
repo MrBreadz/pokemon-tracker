@@ -189,3 +189,144 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-save-chase')?.addEventListener('click', saveChase);
   document.getElementById('btn-export')?.addEventListener('click', exportToExcel);
 });
+
+// ===== IMPORT EXCEL =====
+let importParsedData = null;
+
+function initImport() {
+  const btn = document.getElementById('btn-import');
+  const inp = document.getElementById('import-file-input');
+  const confirmBtn = document.getElementById('btn-confirm-import');
+
+  btn?.addEventListener('click', () => inp?.click());
+
+  inp?.addEventListener('change', async () => {
+    const file = inp.files[0];
+    if (!file) return;
+    try {
+      await parseImportFile(file);
+    } catch(e) {
+      showToast('Erreur de lecture du fichier', 'error');
+      console.error(e);
+    }
+  });
+
+  confirmBtn?.addEventListener('click', confirmImport);
+}
+
+async function parseImportFile(file) {
+  const data = await file.arrayBuffer();
+  const wb = XLSX.read(data, { type: 'array' });
+
+  importParsedData = null;
+  const preview = document.getElementById('import-preview');
+  const confirmBtn = document.getElementById('btn-confirm-import');
+
+  // Chercher les onglets connus
+  const sealedSheet = wb.SheetNames.find(n => n.toLowerCase().includes('scell'));
+  const gradedSheet = wb.SheetNames.find(n => n.toLowerCase().includes('grad'));
+  const chaseSheet  = wb.SheetNames.find(n => n.toLowerCase().includes('chase'));
+
+  if (!sealedSheet && !gradedSheet) {
+    preview.innerHTML = '<div style="color:var(--negative);font-size:13px;padding:12px">❌ Fichier non reconnu — doit contenir les onglets "Scellés" et/ou "Gradées"</div>';
+    confirmBtn.disabled = true;
+    return;
+  }
+
+  const parsed = { sealed: [], graded: [], chase: [] };
+
+  // Parser scellés
+  if (sealedSheet) {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sealedSheet]);
+    parsed.sealed = rows.map((row, i) => ({
+      id: 's_imp_' + i,
+      nom:        row['Nom'] || row['nom'] || '',
+      type:       row['Type'] || row['type'] || 'Booster',
+      langue:     row['Langue'] || row['langue'] || 'FR',
+      stock:      parseInt(row['Stock'] || row['stock']) || 1,
+      prixAchat:  parseFloat(row['Prix unitaire (€)'] || row['Prix achat'] || row['prixAchat']) || 0,
+      prixMarche: parseFloat(row['Prix marché unitaire (€)'] || row['Prix marché'] || row['prixMarche']) || null,
+      notes:      row['Notes'] || row['notes'] || '',
+      image:      null,
+      dateAjout:  row['Date ajout'] || new Date().toISOString().slice(0,10),
+    })).filter(i => i.nom);
+  }
+
+  // Parser gradées
+  if (gradedSheet) {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[gradedSheet]);
+    parsed.graded = rows.map((row, i) => ({
+      id: 'g_imp_' + i,
+      nom:        row['Nom'] || row['nom'] || '',
+      note:       String(row['Note'] || row['note'] || ''),
+      gradeur:    row['Gradeur'] || row['gradeur'] || '',
+      langue:     row['Langue'] || row['langue'] || 'FR',
+      prixAchat:  parseFloat(row['Prix achat (€)'] || row['Prix achat'] || row['prixAchat']) || 0,
+      prixMarche: parseFloat(row['Prix marché (€)'] || row['Prix marché'] || row['prixMarche']) || null,
+      numero:     String(row['N° Certification'] || row['numero'] || ''),
+      notes:      row['Notes'] || row['notes'] || '',
+      photo:      null,
+      dateAjout:  row['Date ajout'] || new Date().toISOString().slice(0,10),
+    })).filter(i => i.nom);
+  }
+
+  // Parser chase
+  if (chaseSheet) {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[chaseSheet]);
+    parsed.chase = rows.map((row, i) => ({
+      id: 'c_imp_' + i,
+      nom:    row['Nom'] || row['nom'] || '',
+      statut: row['Statut'] || row['statut'] || 'À obtenir',
+      notes:  row['Notes'] || row['notes'] || '',
+      image:  null,
+    })).filter(i => i.nom);
+  }
+
+  importParsedData = parsed;
+  confirmBtn.disabled = false;
+
+  // Afficher aperçu
+  preview.innerHTML = `
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">📋 Aperçu du fichier :</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg-2);border-radius:8px;border:1px solid var(--border)">
+        <span style="color:var(--text-2)">📦 Scellés</span>
+        <span style="font-weight:700;color:var(--accent)">${parsed.sealed.length} items</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg-2);border-radius:8px;border:1px solid var(--border)">
+        <span style="color:var(--text-2)">🏆 Cartes gradées</span>
+        <span style="font-weight:700;color:var(--accent)">${parsed.graded.length} cartes</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg-2);border-radius:8px;border:1px solid var(--border)">
+        <span style="color:var(--text-2)">🌟 Chase cards</span>
+        <span style="font-weight:700;color:var(--accent)">${parsed.chase.length} cartes</span>
+      </div>
+    </div>
+  `;
+
+  openModal('modal-import');
+}
+
+function confirmImport() {
+  if (!importParsedData) return;
+
+  APP.data.sealed = importParsedData.sealed;
+  APP.data.graded = importParsedData.graded;
+  if (importParsedData.chase.length > 0) APP.data.chase = importParsedData.chase;
+
+  saveData();
+  closeModal();
+  renderPage(APP.currentPage);
+  updateNavBadges();
+  importParsedData = null;
+
+  // Reset input
+  const inp = document.getElementById('import-file-input');
+  if (inp) inp.value = '';
+
+  showToast('Import réussi ✓ — ' + APP.data.sealed.length + ' scellés, ' + APP.data.graded.length + ' cartes', 'success', 5000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initImport();
+});

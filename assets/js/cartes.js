@@ -85,7 +85,7 @@ function renderGradedTable() {
         <span class="badge ${noteBadgeClass}">${item.note || '—'}</span>
       </td>
       <td><span class="badge badge-type">${item.gradeur}</span></td>
-      <td><span class="badge ${getLangBadge(item.langue)}">${item.langue}</span></td>
+      <td><span class="badge ${getLangBadge(item.langue)}" style="font-size:16px;padding:3px 8px">${getLangFlag(item.langue)}</span></td>
       <td style="font-weight:600">${formatPrice(item.prixAchat)}</td>
       <td>
         <div style="display:flex;align-items:center;gap:6px">

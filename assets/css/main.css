@@ -1471,7 +1471,22 @@ td {
   transition: all 0.15s;
 }
 .pv-icon-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-.pv-icon-btn.fav-active { color:#E8B422; border-color:rgba(232,180,34,0.3); background:rgba(232,180,34,0.08); }
+.pv-icon-btn.fav-active { 
+  color:#E8B422; 
+  border-color:rgba(232,180,34,0.5); 
+  background:rgba(232,180,34,0.2);
+  box-shadow: 0 0 8px rgba(232,180,34,0.3);
+}
+.pv-icon-btn:not(.fav-active) { 
+  color:rgba(255,255,255,0.15); 
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+.pv-icon-btn:not(.fav-active):hover {
+  color:rgba(255,255,255,0.6);
+  filter: none;
+  opacity: 1;
+}
 .pv-icon-btn.danger:hover { background:rgba(255,69,58,0.15); border-color:rgba(255,69,58,0.3); }
 
 /* ===== MODE GRILLE - compact ===== */

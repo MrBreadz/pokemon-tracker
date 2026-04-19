@@ -74,8 +74,12 @@ function renderGradedGrid() {
               <span class="badge badge-type" style="font-size:10px">${item.gradeur}</span>
               <span style="font-weight:700;font-size:12px;color:var(--accent)">${formatPrice(item.prixAchat)}</span>
             </div>
-            <div style="margin-top:6px">
+            <div style="margin-top:6px;display:flex;align-items:center;justify-content:space-between">
               <span class="badge ${getLangBadge(item.langue)}" style="font-size:14px;padding:3px 6px">${getLangFlag(item.langue)}</span>
+              <div style="display:flex;gap:4px">
+                <button class="btn btn-ghost btn-sm btn-icon" style="font-size:11px" onclick="event.stopPropagation();editGraded('${item.id}')">✏️</button>
+                <button class="btn btn-danger btn-sm btn-icon" style="font-size:11px" onclick="event.stopPropagation();deleteGraded('${item.id}')">🗑️</button>
+              </div>
             </div>
           </div>
         </div>
@@ -177,10 +181,10 @@ function renderGradedTable() {
     const diff = formatPriceDiff(item.prixAchat, item.prixMarche);
     const photoHtml = item.photo
       ? `<div style="position:relative;display:inline-block">
-          <img src="${item.photo}" alt="${item.nom}" style="width:48px;height:68px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer" onclick="openPhotoZoom('${item.id}')">
+          <img src="${item.photo}" alt="${item.nom}" style="width:72px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15)" onclick="openPhotoZoom('${item.id}')">
           <button onclick="event.stopPropagation();deleteItemImage('${item.id}','graded')" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#FF453A;border:none;cursor:pointer;font-size:9px;color:#fff;display:flex;align-items:center;justify-content:center;line-height:1" title="Supprimer la photo">✕</button>
          </div>`
-      : `<div style="width:48px;height:68px;border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:var(--bg-2)" onclick="triggerPhotoUpload('${item.id}')" title="Ajouter une photo">📷</div>`;
+      : `<div style="width:72px;height:100px;border-radius:8px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;background:var(--bg-2)" onclick="triggerPhotoUpload('${item.id}')" title="Ajouter une photo">📷</div>`;
 
     const noteVal = parseFloat(item.note);
     let noteBadgeClass = 'badge-note-ec';
@@ -204,7 +208,7 @@ function renderGradedTable() {
       <td>
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-weight:600;cursor:pointer;min-width:40px" onclick="inlineEditPrix('${item.id}','graded',this)" title="Cliquer pour modifier">${item.prixMarche ? formatPrice(item.prixMarche) : '<span style=\"color:var(--text-3)\">— Saisir</span>'}</span>
-          <a href="https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(item.nom.split(' ').slice(0,3).join(' '))}" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Voir sur CardMarket">🛒</a>
+          <a href="https://www.google.com/search?q=${encodeURIComponent(item.nom + ' pokemon carte prix')}" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Rechercher sur Google">🔍</a>
         </div>
       </td>
       <td>${diff}</td>

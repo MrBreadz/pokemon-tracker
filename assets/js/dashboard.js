@@ -50,9 +50,10 @@ function renderDashboardStats() {
 function getChartColors() {
   const isDark = APP.theme === 'dark';
   return {
-    grid: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-    text: isDark ? '#9A9899' : '#6B6560',
-    colors: ['#E8B422','#E85D04','#007AFF','#34C759','#AF52DE','#FF9500','#5AC8FA','#FF453A'],
+    grid: isDark ? 'rgba(141,153,174,0.1)' : 'rgba(43,45,66,0.06)',
+    text: isDark ? '#8D99AE' : '#8D99AE',
+    // Palette: navy, red, slate, et variations
+    colors: ['#2B2D42','#EF233C','#8D99AE','#4a4e6a','#D90429','#adb4c0','#6b7080','#c4ccd6'],
   };
 }
 
@@ -141,9 +142,18 @@ function renderEvolutionChart() {
       plugins: {
         legend: {
           display: true,
-          labels: { color: c.text, font: { size: 11, family: 'Inter' }, boxWidth: 12, padding: 16 }
+          position: 'top',
+          align: 'end',
+          labels: { color: c.text, font: { size: 10, family: 'Space Grotesk' }, boxWidth: 8, boxHeight: 8, padding: 14, usePointStyle: true, pointStyle: 'circle' }
         },
         tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          titleColor: '#2B2D42',
+          bodyColor: '#8D99AE',
+          borderColor: 'rgba(43,45,66,0.1)',
+          borderWidth: 1,
+          padding: 10,
+          cornerRadius: 8,
           callbacks: {
             label: ctx => ' ' + ctx.dataset.label + ' : ' + formatPrice(ctx.raw),
             afterBody: (items) => {
@@ -159,8 +169,16 @@ function renderEvolutionChart() {
         }
       },
       scales: {
-        x: { grid: { color: c.grid }, ticks: { color: c.text } },
-        y: { grid: { color: c.grid }, ticks: { color: c.text, callback: v => formatPrice(v) } }
+        x: {
+          grid: { color: c.grid, drawBorder: false },
+          ticks: { color: c.text, font: { size: 10, family: 'Space Grotesk' } },
+          border: { display: false }
+        },
+        y: {
+          grid: { color: c.grid, drawBorder: false },
+          ticks: { color: c.text, font: { size: 10, family: 'Space Grotesk' }, callback: v => formatPrice(v) },
+          border: { display: false }
+        }
       }
     }
   });
@@ -223,21 +241,21 @@ function renderValeurTypeChart() {
 
 function renderTopValueChart() {
   destroyChart('topval');
-  const ctx = document.getElementById('chart-topval');
-  if (!ctx) return;
+  const el = document.getElementById('chart-topval-list');
+  if (!el) return;
   const items = [
-    ...APP.data.graded.map(i=>({nom:i.nom.split(' ').slice(0,4).join(' '), val:i.prixAchat, type:'Gradée'})),
-    ...APP.data.sealed.filter(i=>i.prixAchat>0).map(i=>({nom:i.nom.split(' ').slice(0,4).join(' '), val:i.prixAchat, type:'Scellé'})),
+    ...APP.data.graded.map(i=>({nom:i.nom.split(' ').slice(0,5).join(' '), val:i.prixAchat, type:'Gradée'})),
+    ...APP.data.sealed.filter(i=>i.prixAchat>0).map(i=>({nom:i.nom.split(' ').slice(0,5).join(' '), val:i.prixAchat, type:'Scellé'})),
   ].sort((a,b)=>b.val-a.val).slice(0,8);
-  const c = getChartColors();
-  dashCharts.topval = new Chart(ctx, {
-    type: 'bar',
-    data: { labels:items.map(i=>i.nom), datasets:[{ label:'Valeur (€)', data:items.map(i=>i.val), backgroundColor:items.map(i=>i.type==='Gradée'?'#E8B422':'#007AFF'), borderRadius:6, borderSkipped:false }] },
-    options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+formatPrice(ctx.raw)}} },
-      scales:{ x:{grid:{color:c.grid},ticks:{color:c.text,callback:v=>formatPrice(v)}}, y:{grid:{display:false},ticks:{color:c.text,font:{size:11}}} }
-    }
-  });
+
+  el.innerHTML = items.map((item, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;background:rgba(255,255,255,0.5);border:1px solid rgba(43,45,66,0.07);margin-bottom:5px;transition:all 0.15s">
+      <div style="width:20px;height:20px;border-radius:50%;background:rgba(239,35,60,0.08);border:1px solid rgba(239,35,60,0.15);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#D90429;flex-shrink:0">${i+1}</div>
+      <div style="flex:1;font-size:11px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.nom}</div>
+      <span style="font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;flex-shrink:0;${item.type==='Gradée' ? 'background:rgba(239,35,60,0.08);color:#D90429;border:1px solid rgba(239,35,60,0.15)' : 'background:rgba(43,45,66,0.07);color:#8D99AE;border:1px solid rgba(43,45,66,0.12)'}">${item.type}</span>
+      <span style="font-size:12px;font-weight:700;color:var(--text);flex-shrink:0;min-width:44px;text-align:right">${formatPrice(item.val)}</span>
+    </div>
+  `).join('');
 }
 
 function renderRecentActivity() {

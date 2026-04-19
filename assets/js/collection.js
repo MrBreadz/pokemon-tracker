@@ -76,6 +76,10 @@ function renderSealedGrid() {
               <button class="btn btn-ghost btn-sm btn-icon" onclick="changeStock('${item.id}',1)">+</button>
             </div>
           </div>
+          <div style="display:flex;gap:4px;margin-top:8px">
+            <button class="btn btn-ghost btn-sm" style="flex:1;font-size:11px" onclick="editSealed('${item.id}')">✏️ Modifier</button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="deleteSealed('${item.id}')">🗑️</button>
+          </div>
         </div>
       </div>
     `).join('') +
@@ -122,8 +126,15 @@ function renderSealedStats() {
   setEl('sealed-val-marche', valMarche
     ? formatPrice(valMarche) + (evoPct !== null ? '<div style="font-size:11px;font-weight:600;color:' + evoColor + ';margin-top:2px">' + evoSign + evoPct + '% vs achat</div>' : '')
     : '—');
+  // P&L moyen en % avec euros entre parenthèses
+  const avgPLPct = avgPL !== null && itemsWithPL.length > 0
+    ? (itemsWithPL.reduce((s,i) => s + i.prixAchat, 0) / itemsWithPL.length)
+    : null;
+  const avgPLPctVal = avgPLPct ? ((avgPL / avgPLPct) * 100).toFixed(1) : null;
   setEl('sealed-avg-pl', avgPL !== null
-    ? '<span style="color:' + (avgPL >= 0 ? 'var(--positive)' : 'var(--negative)') + '">' + (avgPL >= 0 ? '+' : '') + formatPrice(avgPL) + '</span>'
+    ? '<span style="color:' + (avgPL >= 0 ? 'var(--positive)' : 'var(--negative)') + '">' +
+      (avgPL >= 0 ? '+' : '') + avgPLPctVal + '%' +
+      '<span style="font-size:11px;opacity:0.7;margin-left:4px">(' + (avgPL >= 0 ? '+' : '') + formatPrice(avgPL) + ')</span></span>'
     : '—');
 }
 
@@ -166,10 +177,10 @@ function renderSealedTable() {
     const diff = formatPriceDiff(item.prixAchat * item.stock, item.prixMarche ? item.prixMarche * item.stock : null);
     const imgHtml = item.image
       ? `<div style="position:relative;display:inline-block">
-          <img src="${item.image}" alt="${item.nom}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none'">
+          <img src="${item.image}" alt="${item.nom}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer" onclick="openSealedImgZoom('${item.id}')" onerror="this.style.display='none'">
           <button onclick="event.stopPropagation();deleteItemImage('${item.id}','sealed')" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#FF453A;border:none;cursor:pointer;font-size:9px;color:#fff;display:flex;align-items:center;justify-content:center;line-height:1" title="Supprimer l'image">✕</button>
          </div>`
-      : `<div class="td-img-placeholder">${getTypeEmoji(item.type)}</div>`;
+      : `<div class="td-img-placeholder" style="width:64px;height:64px;font-size:24px">${getTypeEmoji(item.type)}</div>`;
 
     return `<tr>
       <td>
@@ -192,7 +203,7 @@ function renderSealedTable() {
       <td>
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-weight:600;cursor:pointer;min-width:40px" onclick="inlineEditPrix('${item.id}','sealed',this)" title="Cliquer pour modifier">${item.prixMarche ? formatPrice(item.prixMarche) : '<span style=\"color:var(--text-3)\">— Saisir</span>'}</span>
-          <a href="https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(item.nom)}" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Voir sur CardMarket">🛒</a>
+          <a href="https://www.google.com/search?q=${encodeURIComponent(item.nom + ' pokemon prix')}" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Rechercher sur Google">🔍</a>
         </div>
       </td>
       <td>${diff}</td>
@@ -436,4 +447,14 @@ function applyImageUrl(type) {
   };
   img.onerror = () => { showToast("Impossible de charger cette image — vérifie l'URL", 'error'); };
   img.src = url;
+}
+
+function openSealedImgZoom(id) {
+  const item = APP.data.sealed.find(i => i.id === id);
+  if (!item || !item.image) return;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:20px';
+  overlay.innerHTML = '<img src="' + item.image + '" style="max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 20px 80px rgba(0,0,0,0.8);object-fit:contain">';
+  overlay.addEventListener('click', () => overlay.remove());
+  document.body.appendChild(overlay);
 }

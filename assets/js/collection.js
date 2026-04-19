@@ -104,14 +104,27 @@ function initSealedFAB() {
 }
 
 function renderSealedStats() {
-  const total = APP.data.sealed.reduce((s, i) => s + i.stock, 0);
+  const total = APP.data.sealed.reduce((s,i) => s + i.stock, 0);
   const valAchat = getTotalSealedValue('achat');
-  const valMarche = APP.data.sealed.some(i => i.prixMarche) ? getTotalSealedValue('marche') : null;
-  const types = new Set(APP.data.sealed.map(i => i.type)).size;
-  document.getElementById('sealed-count').textContent = total;
-  document.getElementById('sealed-val-achat').textContent = formatPrice(valAchat);
-  document.getElementById('sealed-val-marche').textContent = valMarche ? formatPrice(valMarche) : '—';
-  document.getElementById('sealed-types').textContent = types;
+  const hasMarche = APP.data.sealed.some(i => i.prixMarche);
+  const valMarche = hasMarche ? getTotalSealedValue('marche') : null;
+  const evoPct = hasMarche && valAchat > 0 ? ((valMarche - valAchat) / valAchat * 100).toFixed(1) : null;
+  const evoSign = evoPct > 0 ? '+' : '';
+  const evoColor = evoPct > 0 ? 'var(--positive)' : evoPct < 0 ? 'var(--negative)' : 'var(--text-3)';
+  const itemsWithPL = APP.data.sealed.filter(i => i.prixMarche);
+  const avgPL = itemsWithPL.length > 0
+    ? itemsWithPL.reduce((s,i) => s + ((i.prixMarche - i.prixAchat) * i.stock), 0) / itemsWithPL.length
+    : null;
+
+  const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
+  setEl('sealed-count', total);
+  setEl('sealed-val-achat', formatPrice(valAchat));
+  setEl('sealed-val-marche', valMarche
+    ? formatPrice(valMarche) + (evoPct !== null ? '<div style="font-size:11px;font-weight:600;color:' + evoColor + ';margin-top:2px">' + evoSign + evoPct + '% vs achat</div>' : '')
+    : '—');
+  setEl('sealed-avg-pl', avgPL !== null
+    ? '<span style="color:' + (avgPL >= 0 ? 'var(--positive)' : 'var(--negative)') + '">' + (avgPL >= 0 ? '+' : '') + formatPrice(avgPL) + '</span>'
+    : '—');
 }
 
 function getFilteredSealed() {

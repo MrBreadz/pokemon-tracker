@@ -1,3 +1,4 @@
+let sealedView = "table"; // table | grid | grid-large
 // ===== COLLECTION SCELLÉE =====
 let sealedSort = { key: 'nom', dir: 'asc' };
 let sealedFilters = { search: '', type: '', langue: '' };
@@ -5,7 +6,101 @@ let editingSealedId = null;
 
 function renderSealed() {
   renderSealedStats();
-  renderSealedTable();
+  renderSealedViewToggle();
+  if (sealedView === 'table') renderSealedTable();
+  else renderSealedGrid();
+  initSealedFAB();
+}
+
+function renderSealedViewToggle() {
+  const header = document.querySelector('#page-sealed .section-header');
+  if (!header) return;
+  if (document.getElementById('sealed-view-toggle')) return;
+  const toggle = document.createElement('div');
+  toggle.className = 'view-toggle';
+  toggle.id = 'sealed-view-toggle';
+  toggle.innerHTML = `
+    <button class="view-btn ${sealedView==='table'?'active':''}" onclick="setSealedView('table')" title="Tableau">☰</button>
+    <button class="view-btn ${sealedView==='grid'?'active':''}" onclick="setSealedView('grid')" title="Grille">⊞</button>
+    <button class="view-btn ${sealedView==='grid-large'?'active':''}" onclick="setSealedView('grid-large')" title="Grandes vignettes">⬜</button>
+  `;
+  header.appendChild(toggle);
+}
+
+function setSealedView(v) {
+  sealedView = v;
+  document.querySelectorAll('#sealed-view-toggle .view-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['table','grid','grid-large'][i] === v);
+  });
+  const tableWrap = document.querySelector('#page-sealed .table-wrap');
+  const gridWrap = document.getElementById('sealed-grid-wrap');
+  if (v === 'table') {
+    if (tableWrap) tableWrap.style.display = '';
+    if (gridWrap) gridWrap.remove();
+    renderSealedTable();
+  } else {
+    if (tableWrap) tableWrap.style.display = 'none';
+    renderSealedGrid();
+  }
+}
+
+function renderSealedGrid() {
+  const tableWrap = document.querySelector('#page-sealed .table-wrap');
+  if (tableWrap) tableWrap.style.display = 'none';
+  let gridWrap = document.getElementById('sealed-grid-wrap');
+  if (!gridWrap) {
+    gridWrap = document.createElement('div');
+    gridWrap.id = 'sealed-grid-wrap';
+    tableWrap?.parentNode.appendChild(gridWrap);
+  }
+  const data = getFilteredSealed();
+  const isLarge = sealedView === 'grid-large';
+  gridWrap.innerHTML = '<div class="items-grid-view ' + (isLarge ? 'large' : '') + '">' +
+    data.map(item => `
+      <div class="grid-item-card">
+        ${item.image
+          ? '<img class="grid-item-img" src="' + item.image + '" alt="' + item.nom + '">'
+          : '<div class="grid-item-img-placeholder">' + getTypeEmoji(item.type) + '</div>'
+        }
+        <div class="grid-item-body">
+          <div class="grid-item-nom">${item.nom}</div>
+          <div class="grid-item-meta">
+            <span class="badge ${getBadgeType(item.type)}" style="font-size:10px">${item.type}</span>
+            <span style="font-weight:700;font-size:12px;color:var(--accent)">${formatPrice(item.prixAchat)}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+            <span class="badge ${getLangBadge(item.langue)}" style="font-size:14px;padding:3px 6px">${getLangFlag(item.langue)}</span>
+            <div style="display:flex;align-items:center;gap:4px">
+              <button class="btn btn-ghost btn-sm btn-icon" onclick="changeStock('${item.id}',-1)">−</button>
+              <span style="font-size:12px;font-weight:600;min-width:18px;text-align:center">${item.stock}</span>
+              <button class="btn btn-ghost btn-sm btn-icon" onclick="changeStock('${item.id}',1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('') +
+  '</div>';
+}
+
+function initSealedFAB() {
+  let fab = document.getElementById('fab-sealed');
+  if (!fab) {
+    fab = document.createElement('button');
+    fab.id = 'fab-sealed';
+    fab.className = 'fab-add';
+    fab.title = 'Ajouter un article';
+    fab.textContent = '+';
+    fab.onclick = openAddSealed;
+    document.body.appendChild(fab);
+  }
+  // Observer pour afficher/masquer
+  const addBtn = document.getElementById('btn-add-sealed');
+  if (addBtn) {
+    const obs = new IntersectionObserver(entries => {
+      fab.classList.toggle('visible', !entries[0].isIntersecting);
+    }, { threshold: 0 });
+    obs.observe(addBtn);
+  }
 }
 
 function renderSealedStats() {

@@ -1,7 +1,7 @@
 // ===== CORE APP v1.9 =====
 let APP = {
   data: { sealed: [], graded: [], chase: [] },
-  theme: localStorage.getItem('pkm_theme') || 'dark',
+  theme: localStorage.getItem('pkm_theme') || 'light',
   currentPage: 'dashboard',
   ready: false,
 };

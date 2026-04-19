@@ -72,24 +72,96 @@ function renderEvolutionChart() {
   destroyChart('evolution');
   const ctx = document.getElementById('chart-evolution');
   if (!ctx) return;
-  const all = [
-    ...APP.data.sealed.map(i=>({date:i.dateAjout, val:i.prixAchat*i.stock})),
-    ...APP.data.graded.map(i=>({date:i.dateAjout, val:i.prixAchat})),
-  ].filter(i=>i.date).sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const byMonth = {};
-  all.forEach(i=>{ const m=i.date.slice(0,7); byMonth[m]=(byMonth[m]||0)+i.val; });
-  const labels = Object.keys(byMonth).sort();
-  let cumul = 0;
-  const data = labels.map(m=>{ cumul+=byMonth[m]; return Math.round(cumul); });
   const c = getChartColors();
+
+  // Données d'achat réelles (points clés fournis manuellement + valeur actuelle)
+  const currentVal = getTotalValue('achat');
+  const fixedAchat = [
+    { label: 'janv. 24', val: 0 },
+    { label: 'juin 24',  val: 240 },
+    { label: 'nov. 24',  val: 500 },
+    { label: 'mars 25',  val: 1500 },
+    { label: 'juin 25',  val: 3000 },
+    { label: 'déc. 25',  val: 4500 },
+    { label: 'avr. 26',  val: Math.round(currentVal) },
+  ];
+
+  // Courbe marché estimée : légèrement supérieure avec une appréciation progressive
+  // Hypothèse : les items prennent en moyenne 15-25% de valeur avec le temps
+  const marcheMult = [1, 1.05, 1.08, 1.12, 1.18, 1.22, 1.25];
+  const fixedMarche = fixedAchat.map((p, i) => ({
+    label: p.label,
+    val: Math.round(p.val * marcheMult[i])
+  }));
+
+  // Si on a des vraies données marché, on les utilise pour le dernier point
+  const realMarche = getTotalValue('marche');
+  const hasRealMarche = APP.data.sealed.some(i=>i.prixMarche) || APP.data.graded.some(i=>i.prixMarche);
+  if (hasRealMarche && realMarche > 0) {
+    fixedMarche[fixedMarche.length - 1].val = Math.round(realMarche);
+  }
+
   dashCharts.evolution = new Chart(ctx, {
     type: 'line',
-    data: { labels: labels.map(l=>{ const [y,m]=l.split('-'); return new Date(y,m-1).toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}); }),
-      datasets: [{ label:'Valeur cumulée', data, borderColor:'#E8B422', backgroundColor:'rgba(232,180,34,0.08)', borderWidth:2.5, pointBackgroundColor:'#E8B422', pointRadius:4, fill:true, tension:0.4 }]
+    data: {
+      labels: fixedAchat.map(p => p.label),
+      datasets: [
+        {
+          label: 'Valeur investie',
+          data: fixedAchat.map(p => p.val),
+          borderColor: '#E8B422',
+          backgroundColor: 'rgba(232,180,34,0.07)',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#E8B422',
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: true,
+          tension: 0.4,
+          order: 2,
+        },
+        {
+          label: 'Valeur marché estimée',
+          data: fixedMarche.map(p => p.val),
+          borderColor: '#34C759',
+          backgroundColor: 'rgba(52,199,89,0.05)',
+          borderWidth: 2,
+          pointBackgroundColor: '#34C759',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          fill: true,
+          tension: 0.4,
+          borderDash: hasRealMarche ? [] : [5, 4],
+          order: 1,
+        }
+      ]
     },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+formatPrice(ctx.raw)}} },
-      scales:{ x:{grid:{color:c.grid},ticks:{color:c.text,maxTicksLimit:8}}, y:{grid:{color:c.grid},ticks:{color:c.text,callback:v=>formatPrice(v)}} }
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: c.text, font: { size: 11, family: 'Inter' }, boxWidth: 12, padding: 16 }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ' : ' + formatPrice(ctx.raw),
+            afterBody: (items) => {
+              if (items.length === 2) {
+                const diff = items[1].raw - items[0].raw;
+                const pct = items[0].raw > 0 ? ((diff/items[0].raw)*100).toFixed(1) : 0;
+                const sign = diff >= 0 ? '+' : '';
+                return ['', ' P&L : ' + sign + formatPrice(diff) + ' (' + sign + pct + '%)'];
+              }
+              return [];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: c.grid }, ticks: { color: c.text } },
+        y: { grid: { color: c.grid }, ticks: { color: c.text, callback: v => formatPrice(v) } }
+      }
     }
   });
 }

@@ -1,3 +1,4 @@
+let gradedView = "table"; // table | grid | grid-large
 // ===== CARTES GRADÉES =====
 let gradedSort = { key: 'nom', dir: 'asc' };
 let gradedFilters = { search: '', gradeur: '', note: '', langue: '' };
@@ -5,19 +6,132 @@ let editingGradedId = null;
 
 function renderGraded() {
   renderGradedStats();
-  renderGradedTable();
+  renderGradedViewToggle();
+  if (gradedView === 'table') renderGradedTable();
+  else renderGradedGrid();
+  initGradedFAB();
+}
+
+function renderGradedViewToggle() {
+  const header = document.querySelector('#page-graded .section-header');
+  if (!header || document.getElementById('graded-view-toggle')) return;
+  const toggle = document.createElement('div');
+  toggle.className = 'view-toggle';
+  toggle.id = 'graded-view-toggle';
+  toggle.innerHTML = `
+    <button class="view-btn ${gradedView==='table'?'active':''}" onclick="setGradedView('table')" title="Tableau">☰</button>
+    <button class="view-btn ${gradedView==='grid'?'active':''}" onclick="setGradedView('grid')" title="Grille">⊞</button>
+    <button class="view-btn ${gradedView==='grid-large'?'active':''}" onclick="setGradedView('grid-large')" title="Grandes vignettes">⬜</button>
+  `;
+  header.appendChild(toggle);
+}
+
+function setGradedView(v) {
+  gradedView = v;
+  document.querySelectorAll('#graded-view-toggle .view-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['table','grid','grid-large'][i] === v);
+  });
+  const tableWrap = document.querySelector('#page-graded .table-wrap');
+  const gridWrap = document.getElementById('graded-grid-wrap');
+  if (v === 'table') {
+    if (tableWrap) tableWrap.style.display = '';
+    if (gridWrap) gridWrap.remove();
+    renderGradedTable();
+  } else {
+    if (tableWrap) tableWrap.style.display = 'none';
+    renderGradedGrid();
+  }
+}
+
+function renderGradedGrid() {
+  const tableWrap = document.querySelector('#page-graded .table-wrap');
+  if (tableWrap) tableWrap.style.display = 'none';
+  let gridWrap = document.getElementById('graded-grid-wrap');
+  if (!gridWrap) {
+    gridWrap = document.createElement('div');
+    gridWrap.id = 'graded-grid-wrap';
+    tableWrap?.parentNode.appendChild(gridWrap);
+  }
+  const data = getFilteredGraded();
+  const isLarge = gradedView === 'grid-large';
+  gridWrap.innerHTML = '<div class="items-grid-view ' + (isLarge ? 'large' : '') + '">' +
+    data.map(item => {
+      const noteVal = parseFloat(item.note);
+      let noteCls = 'badge-note-ec';
+      if (noteVal === 10) noteCls = 'badge-note-10';
+      else if (noteVal >= 9) noteCls = 'badge-note-9';
+      else if (noteVal >= 8) noteCls = 'badge-note-8';
+      return `
+        <div class="grid-item-card" onclick="openPhotoZoom('${item.id}')">
+          ${item.photo
+            ? '<img class="grid-item-img" src="' + item.photo + '" alt="' + item.nom + '" style="aspect-ratio:2/3;object-fit:cover">'
+            : '<div class="grid-item-img-placeholder" style="aspect-ratio:2/3;font-size:' + (isLarge ? '56px' : '36px') + '">🃏</div>'
+          }
+          <div class="grid-item-body">
+            <div class="grid-item-nom">${item.nom}</div>
+            <div class="grid-item-meta">
+              <span class="badge ${noteCls}" style="font-size:10px">${item.note}</span>
+              <span class="badge badge-type" style="font-size:10px">${item.gradeur}</span>
+              <span style="font-weight:700;font-size:12px;color:var(--accent)">${formatPrice(item.prixAchat)}</span>
+            </div>
+            <div style="margin-top:6px">
+              <span class="badge ${getLangBadge(item.langue)}" style="font-size:14px;padding:3px 6px">${getLangFlag(item.langue)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('') +
+  '</div>';
+}
+
+function initGradedFAB() {
+  let fab = document.getElementById('fab-graded');
+  if (!fab) {
+    fab = document.createElement('button');
+    fab.id = 'fab-graded';
+    fab.className = 'fab-add';
+    fab.title = 'Ajouter une carte';
+    fab.textContent = '+';
+    fab.onclick = openAddGraded;
+    document.body.appendChild(fab);
+  }
+  const addBtn = document.getElementById('btn-add-graded');
+  if (addBtn) {
+    const obs = new IntersectionObserver(entries => {
+      fab.classList.toggle('visible', !entries[0].isIntersecting);
+    }, { threshold: 0 });
+    obs.observe(addBtn);
+  }
 }
 
 function renderGradedStats() {
   const valAchat = getTotalGradedValue('achat');
-  const valMarche = APP.data.graded.some(i => i.prixMarche) ? getTotalGradedValue('marche') : null;
-  const psa = APP.data.graded.filter(i => i.gradeur === 'PSA').length;
-  const note10 = APP.data.graded.filter(i => parseFloat(i.note) === 10).length;
-  document.getElementById('graded-count').textContent = APP.data.graded.length;
-  document.getElementById('graded-val-achat').textContent = formatPrice(valAchat);
-  document.getElementById('graded-val-marche').textContent = valMarche ? formatPrice(valMarche) : '—';
-  document.getElementById('graded-psa').textContent = psa;
-  document.getElementById('graded-10').textContent = note10;
+  const hasMarche = APP.data.graded.some(i => i.prixMarche);
+  const valMarche = hasMarche ? getTotalGradedValue('marche') : null;
+
+  // Évolution % marché vs achat
+  const evoPct = hasMarche && valAchat > 0 ? ((valMarche - valAchat) / valAchat * 100).toFixed(1) : null;
+  const evoSign = evoPct > 0 ? '+' : '';
+  const evoColor = evoPct > 0 ? 'var(--positive)' : evoPct < 0 ? 'var(--negative)' : 'var(--text-3)';
+
+  // Prix moyen
+  const avgPrix = APP.data.graded.length > 0 ? valAchat / APP.data.graded.length : 0;
+
+  // Moyenne des notes
+  const notedCards = APP.data.graded.filter(i => !isNaN(parseFloat(i.note)));
+  const avgNote = notedCards.length > 0
+    ? (notedCards.reduce((s,i) => s + parseFloat(i.note), 0) / notedCards.length).toFixed(1)
+    : null;
+
+  const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
+
+  setEl('graded-count', APP.data.graded.length);
+  setEl('graded-val-achat', formatPrice(valAchat));
+  setEl('graded-val-marche', valMarche
+    ? formatPrice(valMarche) + (evoPct !== null ? '<div style="font-size:11px;font-weight:600;color:' + evoColor + ';margin-top:2px">' + evoSign + evoPct + '% vs achat</div>' : '')
+    : '—');
+  setEl('graded-psa', formatPrice(avgPrix));
+  setEl('graded-10', avgNote !== null ? avgNote + ' / 10' : '—');
 }
 
 function getFilteredGraded() {

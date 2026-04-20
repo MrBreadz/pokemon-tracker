@@ -30,6 +30,21 @@ function setSyncStatus(status) {
   el.innerHTML = '<span style="color:' + (colors[status]||'var(--text-3)') + ';font-size:12px;font-weight:500">' + (s[status]||status) + '</span>';
 }
 
+
+// Migration statuts chase : normaliser vers Gradée / Loose
+function migrateChaseStatuts() {
+  let changed = false;
+  APP.data.chase = APP.data.chase.map(item => {
+    const s = item.statut || '';
+    if (s !== 'Gradée' && s !== 'Loose') {
+      changed = true;
+      return { ...item, statut: s === 'Gradée' ? 'Gradée' : 'Loose' };
+    }
+    return item;
+  });
+  if (changed) saveData();
+}
+
 // Sauvegarde avec debounce
 let saveTimer = null;
 window.firebaseSave = function() {

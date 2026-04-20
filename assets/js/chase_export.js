@@ -6,9 +6,9 @@ function renderChase() {
   if (!grid) return;
   grid.innerHTML = APP.data.chase.map(item => `
     <div class="chase-card">
-      <div class="chase-img" onclick="openPhotoZoomChase('${item.id}')" style="${item.image ? 'cursor:zoom-in' : ''}">
+      <div onclick="openPhotoZoomChase('${item.id}')" style="width:100%;aspect-ratio:63/88;border-radius:10px;overflow:hidden;background:rgba(43,45,66,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;${item.image ? 'cursor:zoom-in' : ''}">
         ${item.image
-          ? `<img src="${item.image}" alt="${item.nom}">`
+          ? `<img src="${item.image}" alt="${item.nom}" style="width:100%;height:100%;object-fit:contain;display:block">`
           : '<span style="font-size:48px">🃏</span>'
         }
       </div>

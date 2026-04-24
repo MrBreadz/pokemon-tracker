@@ -1,225 +1,354 @@
-// ===== VITRINE DIGITALE v1.0 =====
-// 4 étages LED, ambiance noir mat, zoom animé au clic
-
-const SHOWCASE_KEY = 'pkm_showcase_v1';
+// ===== VITRINE DIGITALE v2.0 =====
+const SHOWCASE_KEY = 'pkm_showcase_v2';
 const SHOWCASE_FLOORS = [
-  { id: 'floor1', label: 'Scellé Classique',  sub: 'Blisters · Duo pack · Tri pack · Bundle', icon: '📦', color: '#ffffff' },
-  { id: 'floor2', label: 'Scellé Premium',     sub: 'Displays · Coffrets · UPC',              icon: '🏆', color: '#e8f4ff' },
-  { id: 'floor3', label: 'Cartes Loose',       sub: 'Cartes premium non gradées',             icon: '✨', color: '#fff8e8' },
-  { id: 'floor4', label: 'Cartes Gradées',     sub: 'PSA · CGC · PCA · Collect Aura',        icon: '🎖️', color: '#f0f8ff' },
+  { id: 'floor1', label: 'Scellé Classique',  sub: 'Blisters · Duo · Tri · Bundle',   icon: '📦', color: '#5b8dee' },
+  { id: 'floor2', label: 'Scellé Premium',     sub: 'Displays · Coffrets · UPC',       icon: '💎', color: '#a78bfa' },
+  { id: 'floor3', label: 'Cartes Loose',       sub: 'Cartes premium non gradées',      icon: '✨', color: '#34d399' },
+  { id: 'floor4', label: 'Cartes Gradées',     sub: 'PSA · CGC · PCA · Collect Aura', icon: '🏆', color: '#fbbf24' },
 ];
 
 let showcaseData = { floors: { floor1:[], floor2:[], floor3:[], floor4:[] } };
+let showcaseState = 'closed';   // closed | opening | floor | item
+let showcaseActiveFloor = null;
+let showcaseActiveItem  = null;
 let showcaseEditingFloor = null;
-let showcaseEditingId = null;
-let showcaseZoomed = null;
+let showcaseEditingId    = null;
 
 function loadShowcaseData() {
   try {
     const s = localStorage.getItem(SHOWCASE_KEY);
     if (s) showcaseData = JSON.parse(s);
-    // S'assurer que tous les étages existent
-    SHOWCASE_FLOORS.forEach(f => {
-      if (!showcaseData.floors[f.id]) showcaseData.floors[f.id] = [];
-    });
-  } catch(e) { console.error(e); }
+    SHOWCASE_FLOORS.forEach(f => { if (!showcaseData.floors[f.id]) showcaseData.floors[f.id] = []; });
+  } catch(e) {}
 }
+function saveShowcaseData() { localStorage.setItem(SHOWCASE_KEY, JSON.stringify(showcaseData)); }
 
-function saveShowcaseData() {
-  localStorage.setItem(SHOWCASE_KEY, JSON.stringify(showcaseData));
-}
-
-// ===== RENDER PRINCIPAL =====
+// ===== RENDER =====
 function renderShowcase() {
   loadShowcaseData();
   const container = document.getElementById('showcase-container');
   if (!container) return;
   container.innerHTML = buildShowcaseHTML();
-  initShowcaseEvents();
+  bindShowcaseEvents();
 }
 
 function buildShowcaseHTML() {
   return `
-  <div class="sc-outer" id="sc-outer">
-    <!-- Fond vitrine -->
-    <div class="sc-room">
+<div class="sc-scene" id="sc-scene">
 
-      <!-- HEADER navigation rapide -->
-      <div class="sc-nav">
-        ${SHOWCASE_FLOORS.map((f,i) => `
-          <button class="sc-nav-btn" onclick="scrollToFloor('${f.id}')">
-            <span class="sc-nav-num">${4-i}</span>
-            <span class="sc-nav-label">${f.label}</span>
-          </button>
-        `).reverse().join('')}
-        <button class="sc-nav-btn sc-nav-add" onclick="openAddShowcaseItem(null)">＋ Ajouter</button>
-      </div>
+  <!-- FOND SALLE -->
+  <div class="sc-room-bg">
+    <div class="sc-room-wall"></div>
+    <div class="sc-room-floor-shadow"></div>
+  </div>
 
-      <!-- VITRINE principale -->
-      <div class="sc-cabinet" id="sc-cabinet">
+  <!-- VITRINE PRINCIPALE -->
+  <div class="sc-cabinet-wrap" id="sc-cabinet-wrap">
+    <div class="sc-cabinet" id="sc-cabinet">
 
-        <!-- Structure de la vitrine -->
-        <div class="sc-cabinet-frame">
+      <!-- CARCASSE -->
+      <div class="sc-frame">
 
-          <!-- Lumière ambiante top -->
-          <div class="sc-ambient-top"></div>
+        <!-- BORD HAUT -->
+        <div class="sc-frame-top">
+          <div class="sc-led-bar"></div>
+        </div>
 
-          <!-- 4 étages du bas vers le haut visuellement (étage 4 = haut) -->
+        <!-- ÉTAGES (du haut = floor4 au bas = floor1) -->
+        <div class="sc-floors-wrap">
           ${[...SHOWCASE_FLOORS].reverse().map((floor, ri) => {
             const items = showcaseData.floors[floor.id] || [];
-            const floorNum = 4 - ri;
             return `
-            <div class="sc-floor" id="${floor.id}" data-floor="${floor.id}">
-              <!-- LED strip top de l'étagère -->
-              <div class="sc-led-strip">
-                <div class="sc-led-glow" style="background:radial-gradient(ellipse at 50% 0%, rgba(220,230,255,0.35) 0%, transparent 70%)"></div>
+            <div class="sc-floor-unit" id="fu-${floor.id}" data-floor="${floor.id}">
+              <!-- Fond LED de l'étage -->
+              <div class="sc-floor-bg">
+                <div class="sc-floor-led-top"></div>
+                <div class="sc-floor-glow" style="--fc:${floor.color}20"></div>
               </div>
 
-              <!-- Label de l'étage -->
-              <div class="sc-floor-label">
-                <span class="sc-floor-icon">${floor.icon}</span>
-                <div>
-                  <div class="sc-floor-name">${floor.label}</div>
-                  <div class="sc-floor-sub">${floor.sub}</div>
-                </div>
-                <button class="sc-floor-add" onclick="event.stopPropagation();openAddShowcaseItem('${floor.id}')" title="Ajouter un item">＋</button>
-              </div>
-
-              <!-- Items sur l'étagère -->
-              <div class="sc-shelf-items" id="shelf-${floor.id}">
+              <!-- CONTENU ÉTAGÈRE (masqué si vitrine fermée) -->
+              <div class="sc-floor-content" id="fc-${floor.id}">
                 ${items.length === 0
-                  ? `<div class="sc-shelf-empty">
-                      <span style="opacity:0.25;font-size:11px">Cliquez + pour ajouter des items</span>
-                    </div>`
-                  : items.map(item => buildShelfItem(item, floor.id)).join('')
+                  ? `<div class="sc-floor-empty">Aucun item — cliquez ＋ pour ajouter</div>`
+                  : items.map(item => buildItem(item, floor.id)).join('')
                 }
               </div>
 
-              <!-- Planche de l'étagère -->
-              <div class="sc-shelf-board">
-                <div class="sc-shelf-reflection"></div>
+              <!-- LABEL CENTRÉ (visible vitrine fermée) -->
+              <div class="sc-floor-overlay" id="fo-${floor.id}" onclick="openFloor('${floor.id}')">
+                <div class="sc-floor-label-wrap">
+                  <div class="sc-floor-label-icon">${floor.icon}</div>
+                  <div class="sc-floor-label-text">${floor.label}</div>
+                  <div class="sc-floor-label-sub">${floor.sub}</div>
+                  <div class="sc-floor-label-count">${items.length} item${items.length!==1?'s':''}</div>
+                </div>
               </div>
+
+              <!-- Planche étagère -->
+              <div class="sc-shelf"></div>
             </div>`;
           }).join('')}
-
-          <!-- Sol de la vitrine -->
-          <div class="sc-cabinet-floor"></div>
         </div>
 
-        <!-- Reflets vitres -->
-        <div class="sc-glass-left"></div>
-        <div class="sc-glass-right"></div>
+        <!-- BORD BAS -->
+        <div class="sc-frame-bottom"></div>
       </div>
 
-    </div>
-
-    <!-- OVERLAY zoom item -->
-    <div class="sc-zoom-overlay" id="sc-zoom-overlay" onclick="closeZoom()">
-      <div class="sc-zoom-content" id="sc-zoom-content" onclick="event.stopPropagation()">
-        <button class="sc-zoom-close" onclick="closeZoom()">✕</button>
-        <div id="sc-zoom-inner"></div>
+      <!-- PORTES VITRÉES -->
+      <div class="sc-doors" id="sc-doors">
+        <div class="sc-door sc-door-left"  id="sc-door-left">
+          <div class="sc-door-glass">
+            <div class="sc-door-reflet"></div>
+            <div class="sc-door-handle sc-door-handle-right"></div>
+          </div>
+        </div>
+        <div class="sc-door sc-door-right" id="sc-door-right">
+          <div class="sc-door-glass">
+            <div class="sc-door-reflet"></div>
+            <div class="sc-door-handle sc-door-handle-left"></div>
+          </div>
+        </div>
       </div>
+
+      <!-- MONTANTS LATÉRAUX -->
+      <div class="sc-side sc-side-left"></div>
+      <div class="sc-side sc-side-right"></div>
     </div>
-  </div>`;
+  </div>
+
+  <!-- BOUTON FERMER (visible quand étage ouvert) -->
+  <button class="sc-back-btn" id="sc-back-btn" onclick="closeFloor()">
+    ← Fermer la vitrine
+  </button>
+
+  <!-- BOUTON AJOUTER -->
+  <button class="sc-add-fab" id="sc-add-fab" onclick="openAddShowcaseItem(showcaseActiveFloor)" title="Ajouter un item">＋</button>
+
+  <!-- VISUALISATEUR ITEM -->
+  <div class="sc-viewer" id="sc-viewer" onclick="closeViewer()">
+    <div class="sc-viewer-inner" onclick="event.stopPropagation()" id="sc-viewer-inner"></div>
+    <button class="sc-viewer-close" onclick="closeViewer()">✕</button>
+  </div>
+
+</div>`;
 }
 
-function buildShelfItem(item, floorId) {
+function buildItem(item, floorId) {
   const isGraded = floorId === 'floor4';
   const isCard   = floorId === 'floor3' || floorId === 'floor4';
+  const ph = getItemPlaceholder(item, floorId);
 
   return `
-  <div class="sc-item" data-id="${item.id}" data-floor="${floorId}" onclick="zoomItem('${item.id}','${floorId}')">
-    <div class="sc-item-inner">
-      <!-- Image produit -->
-      <div class="sc-item-img-wrap ${isGraded ? 'graded-slab' : isCard ? 'card-loose' : 'sealed-box'}">
-        ${item.image
-          ? `<img src="${item.image}" alt="${item.nom}" class="sc-item-img">`
-          : `<div class="sc-item-placeholder">${getFloorEmoji(floorId)}</div>`
-        }
-        ${isGraded && item.grade ? `<div class="sc-slab-grade">${item.grade}</div>` : ''}
-        ${isGraded && item.gradeur ? `<div class="sc-slab-label">${item.gradeur}</div>` : ''}
-        <!-- Reflet sur l'item -->
-        <div class="sc-item-shine"></div>
-      </div>
-      <!-- Nom sous l'item -->
-      <div class="sc-item-name">${item.nom.split(' ').slice(0,3).join(' ')}</div>
+  <div class="sc-item ${isGraded?'sc-item-slab':isCard?'sc-item-card':'sc-item-box'}"
+       data-id="${item.id}" data-floor="${floorId}"
+       onclick="viewItem('${item.id}','${floorId}')">
+    <div class="sc-item-wrap">
+      ${item.image
+        ? `<img src="${item.image}" class="sc-item-img" alt="${item.nom}">`
+        : ph
+      }
+      ${isGraded && item.grade ? `
+        <div class="sc-slab-top">
+          <span class="sc-slab-gradeur">${item.gradeur||'PSA'}</span>
+          <span class="sc-slab-num">${item.grade}</span>
+        </div>` : ''
+      }
+      <div class="sc-item-shine"></div>
+      <div class="sc-item-shadow"></div>
     </div>
-    <!-- Actions au hover -->
-    <div class="sc-item-actions">
+    <div class="sc-item-label">${item.nom.split(' ').slice(0,3).join(' ')}</div>
+    <!-- Actions -->
+    <div class="sc-item-btns">
       <button onclick="event.stopPropagation();editShowcaseItem('${item.id}','${floorId}')" title="Modifier">✏️</button>
       <button onclick="event.stopPropagation();deleteShowcaseItem('${item.id}','${floorId}')" title="Supprimer">🗑️</button>
     </div>
   </div>`;
 }
 
-function getFloorEmoji(floorId) {
-  return { floor1:'📦', floor2:'🏆', floor3:'✨', floor4:'🎖️' }[floorId] || '📦';
+function getItemPlaceholder(item, floorId) {
+  const colors = { floor1:'#3b5bdb', floor2:'#7048e8', floor3:'#0ca678', floor4:'#e67700' };
+  const color = colors[floorId] || '#555';
+  const label = item.nom.substring(0,2).toUpperCase();
+  if (floorId === 'floor4') {
+    return `<div class="sc-placeholder-slab" style="background:linear-gradient(160deg,${color}33,${color}11)">
+      <div style="font-size:9px;font-weight:700;color:${color};letter-spacing:1px">${item.gradeur||'PSA'}</div>
+      <div style="font-size:22px;margin:4px 0">🃏</div>
+      <div class="sc-slab-grade-ph">${item.grade||'?'}</div>
+    </div>`;
+  }
+  if (floorId === 'floor3') {
+    return `<div class="sc-placeholder-card" style="background:linear-gradient(160deg,${color}44,${color}22)">
+      <div style="font-size:28px">✨</div>
+      <div style="font-size:9px;color:${color};font-weight:700;margin-top:4px">${label}</div>
+    </div>`;
+  }
+  return `<div class="sc-placeholder-box" style="background:linear-gradient(160deg,${color}44,${color}22)">
+    <div style="font-size:24px">${floorId==='floor2'?'💎':'📦'}</div>
+    <div style="font-size:10px;color:${color};font-weight:700;margin-top:6px;text-align:center;padding:0 4px;line-height:1.3">${item.nom.split(' ').slice(0,2).join(' ')}</div>
+  </div>`;
 }
 
-// ===== ZOOM ANIMÉ =====
-function zoomItem(id, floorId) {
+// ===== ANIMATIONS =====
+function openFloor(floorId) {
+  if (showcaseState !== 'closed') return;
+  showcaseState = 'opening';
+  showcaseActiveFloor = floorId;
+
+  const doorL = document.getElementById('sc-door-left');
+  const doorR = document.getElementById('sc-door-right');
+
+  // Ouvrir les portes
+  doorL.classList.add('open');
+  doorR.classList.add('open');
+
+  // Après ouverture portes → zoom sur l'étage
+  setTimeout(() => {
+    zoomToFloor(floorId);
+  }, 600);
+}
+
+function zoomToFloor(floorId) {
+  const floorEl = document.getElementById(`fu-${floorId}`);
+  const overlay = document.getElementById(`fo-${floorId}`);
+  const cabinet = document.getElementById('sc-cabinet-wrap');
+  const backBtn = document.getElementById('sc-back-btn');
+  const addFab  = document.getElementById('sc-add-fab');
+
+  if (!floorEl) return;
+
+  // Calculer position pour centrer l'étage
+  const scene    = document.getElementById('sc-scene');
+  const sceneH   = scene.offsetHeight;
+  const floorTop = floorEl.offsetTop;
+  const floorH   = floorEl.offsetHeight;
+  const cabTop   = document.getElementById('sc-cabinet').offsetTop;
+
+  // Masquer overlay label
+  overlay.classList.add('hidden');
+
+  // Afficher contenu
+  const content = document.getElementById(`fc-${floorId}`);
+  content.classList.add('visible');
+
+  // Zoom CSS 3D
+  cabinet.classList.add('zoomed');
+  cabinet.style.setProperty('--floor-offset', `-${cabTop + floorTop - (sceneH/2 - floorH/2)}px`);
+
+  showcaseState = 'floor';
+  backBtn.classList.add('visible');
+  addFab.classList.add('visible');
+
+  // Animer items avec délai
+  setTimeout(() => {
+    const items = document.querySelectorAll(`#fc-${floorId} .sc-item`);
+    items.forEach((el, i) => {
+      setTimeout(() => el.classList.add('entered'), i * 60);
+    });
+  }, 200);
+}
+
+function closeFloor() {
+  if (showcaseState !== 'floor') return;
+
+  const doorL   = document.getElementById('sc-door-left');
+  const doorR   = document.getElementById('sc-door-right');
+  const cabinet = document.getElementById('sc-cabinet-wrap');
+  const backBtn = document.getElementById('sc-back-btn');
+  const addFab  = document.getElementById('sc-add-fab');
+
+  // Reset zoom
+  cabinet.classList.remove('zoomed');
+
+  // Remettre overlay labels + masquer contenu
+  SHOWCASE_FLOORS.forEach(f => {
+    const ov = document.getElementById(`fo-${f.id}`);
+    const ct = document.getElementById(`fc-${f.id}`);
+    if (ov) ov.classList.remove('hidden');
+    if (ct) {
+      ct.classList.remove('visible');
+      ct.querySelectorAll('.sc-item').forEach(el => el.classList.remove('entered'));
+    }
+  });
+
+  // Fermer portes
+  setTimeout(() => {
+    doorL.classList.remove('open');
+    doorR.classList.remove('open');
+  }, 200);
+
+  backBtn.classList.remove('visible');
+  addFab.classList.remove('visible');
+  showcaseState = 'closed';
+  showcaseActiveFloor = null;
+}
+
+// ===== VISUALISATEUR =====
+function viewItem(id, floorId) {
+  if (showcaseState !== 'floor') return;
   const items = showcaseData.floors[floorId] || [];
-  const item = items.find(i => i.id === id);
+  const item  = items.find(i => i.id === id);
   if (!item) return;
 
+  const floor = SHOWCASE_FLOORS.find(f => f.id === floorId);
   const isGraded = floorId === 'floor4';
   const isCard   = floorId === 'floor3' || floorId === 'floor4';
-  const floor    = SHOWCASE_FLOORS.find(f => f.id === floorId);
+  const ph = getItemPlaceholder(item, floorId);
 
-  const overlay = document.getElementById('sc-zoom-overlay');
-  const inner   = document.getElementById('sc-zoom-inner');
+  const viewer  = document.getElementById('sc-viewer');
+  const inner   = document.getElementById('sc-viewer-inner');
 
   inner.innerHTML = `
-    <div class="sc-zoom-img-wrap ${isGraded ? 'zoom-graded' : isCard ? 'zoom-card' : 'zoom-sealed'}">
-      ${item.image
-        ? `<img src="${item.image}" alt="${item.nom}" class="sc-zoom-img">`
-        : `<div class="sc-zoom-placeholder">${getFloorEmoji(floorId)}</div>`
-      }
-      ${isGraded && item.grade ? `<div class="sc-zoom-grade">${item.grade}</div>` : ''}
-      ${isGraded && item.gradeur ? `<div class="sc-zoom-gradeur">${item.gradeur}</div>` : ''}
-      <div class="sc-zoom-shine"></div>
+    <div class="scv-img-zone">
+      <div class="scv-img-wrap ${isGraded?'scv-slab':isCard?'scv-card':'scv-box'}">
+        ${item.image
+          ? `<img src="${item.image}" class="scv-img" alt="${item.nom}">`
+          : `<div class="scv-ph">${ph}</div>`
+        }
+        ${isGraded && item.grade ? `
+          <div class="scv-slab-banner">
+            <span class="scv-slab-gradeur">${item.gradeur||'PSA'}</span>
+            <span class="scv-slab-score">${item.grade}</span>
+          </div>` : ''
+        }
+        <div class="scv-shine"></div>
+      </div>
     </div>
-    <div class="sc-zoom-info">
-      <div class="sc-zoom-floor-badge">${floor.icon} ${floor.label}</div>
-      <div class="sc-zoom-name">${item.nom}</div>
-      ${item.prix ? `<div class="sc-zoom-prix">${formatPrice(item.prix)}</div>` : ''}
-      ${item.notes ? `<div class="sc-zoom-notes">"${item.notes}"</div>` : ''}
+    <div class="scv-info">
+      <div class="scv-badge" style="--fc:${floor.color}">${floor.icon} ${floor.label}</div>
+      <h2 class="scv-name">${item.nom}</h2>
+      ${item.prix ? `<div class="scv-prix">${formatPrice(item.prix)}</div>` : ''}
+      ${isGraded && item.grade ? `<div class="scv-grade-row"><span class="scv-grade-num">${item.grade}</span><span class="scv-grade-lbl"> / 10</span><span class="scv-gradeur-tag">${item.gradeur||''}</span></div>` : ''}
+      ${item.notes ? `<div class="scv-notes">"${item.notes}"</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:20px">
+        <button class="btn btn-secondary" style="font-size:12px" onclick="editShowcaseItem('${item.id}','${floorId}');closeViewer()">✏️ Modifier</button>
+        <button class="btn btn-danger"    style="font-size:12px" onclick="deleteShowcaseItem('${item.id}','${floorId}');closeViewer()">🗑️ Supprimer</button>
+      </div>
     </div>
   `;
 
-  overlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  viewer.classList.add('open');
+  showcaseState = 'item';
 }
 
-function closeZoom() {
-  const overlay = document.getElementById('sc-zoom-overlay');
-  if (overlay) overlay.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// ===== SCROLL VERS ÉTAGE =====
-function scrollToFloor(floorId) {
-  const el = document.getElementById(floorId);
-  if (!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  el.classList.add('sc-floor-highlight');
-  setTimeout(() => el.classList.remove('sc-floor-highlight'), 1500);
+function closeViewer() {
+  document.getElementById('sc-viewer').classList.remove('open');
+  showcaseState = 'floor';
 }
 
 // ===== ADD / EDIT / DELETE =====
 function openAddShowcaseItem(floorId) {
-  showcaseEditingFloor = floorId;
+  showcaseEditingFloor = floorId || 'floor1';
   showcaseEditingId    = null;
   document.getElementById('sc-modal-title').textContent = 'Ajouter à la vitrine';
-  document.getElementById('sc-item-nom').value    = '';
-  document.getElementById('sc-item-prix').value   = '';
-  document.getElementById('sc-item-notes').value  = '';
-  document.getElementById('sc-item-grade').value  = '';
+  document.getElementById('sc-item-nom').value     = '';
+  document.getElementById('sc-item-prix').value    = '';
+  document.getElementById('sc-item-notes').value   = '';
+  document.getElementById('sc-item-grade').value   = '';
   document.getElementById('sc-item-gradeur').value = '';
-  document.getElementById('sc-item-url').value    = '';
-  if (floorId) document.getElementById('sc-item-floor').value = floorId;
+  document.getElementById('sc-item-url').value     = '';
+  document.getElementById('sc-item-floor').value   = showcaseEditingFloor;
   const prev = document.getElementById('sc-img-preview');
-  prev.innerHTML = '<div style="font-size:28px;opacity:0.3">🖼️</div><div style="font-size:11px;opacity:0.3;margin-top:4px">Cliquez pour uploader</div>';
+  prev.innerHTML = '<div style="font-size:26px;opacity:0.3">🖼️</div><div style="font-size:10px;opacity:0.3;margin-top:4px">Cliquez pour uploader</div>';
   prev.classList.remove('has-image');
   delete prev.dataset.pendingImage;
   toggleGradedFields();
@@ -227,24 +356,24 @@ function openAddShowcaseItem(floorId) {
 }
 
 function editShowcaseItem(id, floorId) {
-  const item = (showcaseData.floors[floorId] || []).find(i => i.id === id);
+  const item = (showcaseData.floors[floorId]||[]).find(i => i.id === id);
   if (!item) return;
   showcaseEditingFloor = floorId;
   showcaseEditingId    = id;
   document.getElementById('sc-modal-title').textContent = 'Modifier l\'item';
-  document.getElementById('sc-item-nom').value    = item.nom || '';
-  document.getElementById('sc-item-floor').value  = floorId;
-  document.getElementById('sc-item-prix').value   = item.prix || '';
-  document.getElementById('sc-item-notes').value  = item.notes || '';
-  document.getElementById('sc-item-grade').value  = item.grade || '';
-  document.getElementById('sc-item-gradeur').value = item.gradeur || '';
-  document.getElementById('sc-item-url').value    = '';
+  document.getElementById('sc-item-nom').value     = item.nom    || '';
+  document.getElementById('sc-item-floor').value   = floorId;
+  document.getElementById('sc-item-prix').value    = item.prix   || '';
+  document.getElementById('sc-item-notes').value   = item.notes  || '';
+  document.getElementById('sc-item-grade').value   = item.grade  || '';
+  document.getElementById('sc-item-gradeur').value = item.gradeur|| '';
+  document.getElementById('sc-item-url').value     = '';
   const prev = document.getElementById('sc-img-preview');
   if (item.image) {
-    prev.innerHTML = `<img src="${item.image}" style="max-width:100%;max-height:140px;border-radius:8px;object-fit:contain">`;
+    prev.innerHTML = `<img src="${item.image}" style="max-width:100%;max-height:130px;border-radius:8px;object-fit:contain">`;
     prev.classList.add('has-image');
   } else {
-    prev.innerHTML = '<div style="font-size:28px;opacity:0.3">🖼️</div>';
+    prev.innerHTML = '<div style="font-size:26px;opacity:0.3">🖼️</div>';
     prev.classList.remove('has-image');
   }
   delete prev.dataset.pendingImage;
@@ -253,21 +382,21 @@ function editShowcaseItem(id, floorId) {
 }
 
 function toggleGradedFields() {
-  const floor = document.getElementById('sc-item-floor').value;
-  const gradedFields = document.getElementById('sc-graded-fields');
-  if (gradedFields) gradedFields.style.display = floor === 'floor4' ? 'block' : 'none';
+  const floor = document.getElementById('sc-item-floor')?.value;
+  const el = document.getElementById('sc-graded-fields');
+  if (el) el.style.display = floor === 'floor4' ? 'block' : 'none';
 }
 
 function saveShowcaseItem() {
-  const nom    = document.getElementById('sc-item-nom').value.trim();
-  const floor  = document.getElementById('sc-item-floor').value;
-  const prix   = parseFloat(document.getElementById('sc-item-prix').value) || null;
-  const notes  = document.getElementById('sc-item-notes').value.trim();
-  const grade  = document.getElementById('sc-item-grade').value.trim();
-  const gradeur= document.getElementById('sc-item-gradeur').value.trim();
-  const url    = document.getElementById('sc-item-url').value.trim();
-  const prev   = document.getElementById('sc-img-preview');
-  const pending= prev.dataset.pendingImage || null;
+  const nom     = document.getElementById('sc-item-nom').value.trim();
+  const floor   = document.getElementById('sc-item-floor').value;
+  const prix    = parseFloat(document.getElementById('sc-item-prix').value) || null;
+  const notes   = document.getElementById('sc-item-notes').value.trim();
+  const grade   = document.getElementById('sc-item-grade').value.trim();
+  const gradeur = document.getElementById('sc-item-gradeur').value.trim();
+  const url     = document.getElementById('sc-item-url').value.trim();
+  const prev    = document.getElementById('sc-img-preview');
+  const pending = prev.dataset.pendingImage || null;
 
   if (!nom) { showToast('Le nom est requis', 'error'); return; }
   const image = url.startsWith('http') ? url : (pending || null);
@@ -275,27 +404,33 @@ function saveShowcaseItem() {
   if (!showcaseData.floors[floor]) showcaseData.floors[floor] = [];
 
   if (showcaseEditingId) {
-    // Déplacer si changement d'étage
     if (floor !== showcaseEditingFloor) {
       showcaseData.floors[showcaseEditingFloor] = (showcaseData.floors[showcaseEditingFloor]||[]).filter(i => i.id !== showcaseEditingId);
     }
-    const idx = (showcaseData.floors[floor]||[]).findIndex(i => i.id === showcaseEditingId);
-    const updated = { id: showcaseEditingId, nom, prix, notes, grade, gradeur, image: image || ((showcaseData.floors[floor]||[])[idx]||{}).image || null };
-    if (idx !== -1) showcaseData.floors[floor][idx] = updated;
-    else showcaseData.floors[floor].push(updated);
+    const arr = showcaseData.floors[floor];
+    const idx = arr.findIndex(i => i.id === showcaseEditingId);
+    const updated = { id: showcaseEditingId, nom, prix, notes, grade, gradeur, image: image || (arr[idx]||{}).image || null };
+    if (idx !== -1) arr[idx] = updated; else arr.push(updated);
     showToast('Item modifié ✓', 'success');
   } else {
     showcaseData.floors[floor].push({ id: genId('sc'), nom, prix, notes, grade, gradeur, image });
-    showToast('Ajouté à la vitrine ✓', 'success');
+    showToast('Ajouté ✓', 'success');
   }
 
   saveShowcaseData();
   closeModal();
+  // Refresh en gardant l'état
+  const prevState = showcaseState;
+  const prevFloor = showcaseActiveFloor;
   renderShowcase();
+  if (prevState === 'floor' && prevFloor) {
+    showcaseState = 'closed';
+    openFloor(prevFloor);
+  }
 }
 
 function deleteShowcaseItem(id, floorId) {
-  if (!confirm('Retirer cet item de la vitrine ?')) return;
+  if (!confirm('Retirer cet item ?')) return;
   showcaseData.floors[floorId] = (showcaseData.floors[floorId]||[]).filter(i => i.id !== id);
   saveShowcaseData();
   renderShowcase();
@@ -309,22 +444,25 @@ function initShowcaseImageUpload() {
   if (!prev || !inp) return;
   prev.addEventListener('click', () => inp.click());
   inp.addEventListener('change', async () => {
-    const file = inp.files[0];
-    if (!file) return;
-    const b64 = await compressImage(file, 800, 0.75);
-    prev.innerHTML = `<img src="${b64}" style="max-width:100%;max-height:140px;border-radius:8px;object-fit:contain">`;
+    const file = inp.files[0]; if (!file) return;
+    const b64 = await compressImage(file, 800, 0.78);
+    prev.innerHTML = `<img src="${b64}" style="max-width:100%;max-height:130px;border-radius:8px;object-fit:contain">`;
     prev.classList.add('has-image');
     prev.dataset.pendingImage = b64;
   });
 }
 
-// ===== EVENTS =====
-function initShowcaseEvents() {
-  // Rien de spécial, tout est en onclick inline
-}
+function bindShowcaseEvents() {}
 
 document.addEventListener('DOMContentLoaded', () => {
   initShowcaseImageUpload();
   document.getElementById('btn-save-showcase-item')?.addEventListener('click', saveShowcaseItem);
   document.getElementById('sc-item-floor')?.addEventListener('change', toggleGradedFields);
+  // Fermer avec Echap
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (showcaseState === 'item') closeViewer();
+      else if (showcaseState === 'floor') closeFloor();
+    }
+  });
 });

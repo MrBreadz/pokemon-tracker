@@ -1258,8 +1258,8 @@ td {
   transition: transform 0.7s cubic-bezier(0.4,0,0.2,1);
   transform-origin: center top;
 }
-.sc-cabinet-wrap.zoomed {
-  transform: scale(1.35) translateY(calc(var(--floor-offset, 0px) * 0.3));
+.sc-cabinet-wrap.floor-open {
+  /* Le contenu est géré par sc-floor-active/hidden */
 }
 
 /* CABINET */
@@ -1313,7 +1313,7 @@ td {
 }
 .sc-floor-unit {
   position: relative;
-  height: 155px;
+  height: 210px;
   border-bottom: 2px solid #1e1e25;
   overflow: hidden;
 }
@@ -1368,7 +1368,6 @@ td {
   font-size: 14px; font-weight: 700;
   color: rgba(255,255,255,0.9); letter-spacing: -0.2px;
 }
-.sc-floor-label-sub  { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; }
 .sc-floor-label-count {
   font-size: 10px; color: rgba(239,35,60,0.7);
   font-weight: 600; margin-top: 4px;
@@ -1648,6 +1647,43 @@ td {
   text-transform: uppercase; letter-spacing: 0.5px;
 }
 .scv-notes { font-size: 13px; color: rgba(255,255,255,0.38); font-style: italic; line-height: 1.6; }
+
+
+/* Étage actif : plein écran dans la vitrine */
+.sc-floor-active {
+  height: auto !important;
+  min-height: calc(100vh - 120px) !important;
+  transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+.sc-floor-active .sc-floor-content {
+  min-height: calc(100vh - 200px);
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding: 24px 20px;
+  gap: 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.sc-floor-active .sc-floor-led-top {
+  box-shadow: 0 0 30px 8px rgba(200,220,255,0.4), 0 0 60px 16px rgba(180,210,255,0.2);
+}
+
+/* Étages masqués */
+.sc-floor-hidden {
+  height: 0 !important;
+  overflow: hidden !important;
+  border-bottom: none !important;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Items plus grands quand étage actif */
+.sc-floor-active .sc-item-box .sc-item-wrap  { width: 110px; height: 92px; }
+.sc-floor-active .sc-placeholder-box         { width: 110px; height: 92px; }
+.sc-floor-active .sc-item-card .sc-item-wrap { width: 80px; height: 112px; }
+.sc-floor-active .sc-placeholder-card        { width: 80px; height: 112px; }
+.sc-floor-active .sc-item-slab .sc-item-wrap { width: 86px; height: 124px; }
+.sc-floor-active .sc-item-label              { font-size: 9px; max-width: 110px; }
 
 @media (max-width: 600px) {
   .sc-viewer-inner { flex-direction: column; gap: 24px; }

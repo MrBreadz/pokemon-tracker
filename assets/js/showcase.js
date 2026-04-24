@@ -66,10 +66,10 @@ function buildShowcaseHTML() {
                 <div class="sc-floor-glow" style="--fc:${floor.color}20"></div>
               </div>
 
-              <!-- CONTENU ÉTAGÈRE (masqué si vitrine fermée) -->
-              <div class="sc-floor-content" id="fc-${floor.id}">
+              <!-- CONTENU ÉTAGÈRE -->
+              <div class="sc-floor-content ghost" id="fc-${floor.id}">
                 ${items.length === 0
-                  ? `<div class="sc-floor-empty">Aucun item — cliquez ＋ pour ajouter</div>`
+                  ? buildFakePlaceholders(floor.id)
                   : items.map(item => buildItem(item, floor.id)).join('')
                 }
               </div>
@@ -164,6 +164,27 @@ function buildItem(item, floorId) {
   </div>`;
 }
 
+
+function buildFakePlaceholders(floorId) {
+  const colors = { floor1:'#3b5bdb', floor2:'#7048e8', floor3:'#0ca678', floor4:'#e67700' };
+  const col = colors[floorId] || '#555';
+  const isGraded = floorId === 'floor4';
+  const isCard   = floorId === 'floor3' || floorId === 'floor4';
+  const count = 6;
+  return Array.from({length: count}, (_, i) => `
+    <div class="sc-item ${isGraded?'sc-item-slab':isCard?'sc-item-card':'sc-item-box'} sc-item-fake">
+      <div class="sc-item-wrap">
+        <div class="${isGraded?'sc-placeholder-slab':isCard?'sc-placeholder-card':'sc-placeholder-box'}"
+             style="background:linear-gradient(160deg,${col}22,${col}0a);opacity:${0.3 + (i%3)*0.15}">
+          <div style="font-size:${isGraded?'18':'20'}px;opacity:0.4">${isGraded?'🎖️':isCard?'✨':'📦'}</div>
+        </div>
+        <div class="sc-item-shine"></div>
+      </div>
+      <div class="sc-item-label" style="opacity:0.3">— — —</div>
+    </div>
+  `).join('');
+}
+
 function getItemPlaceholder(item, floorId) {
   const colors = { floor1:'#3b5bdb', floor2:'#7048e8', floor3:'#0ca678', floor4:'#e67700' };
   const color = colors[floorId] || '#555';
@@ -220,7 +241,7 @@ function zoomToFloor(floorId) {
       fo.classList.add('hidden');
       fu.classList.add('sc-floor-active');
       const content = document.getElementById(`fc-${f.id}`);
-      if (content) content.classList.add('visible');
+      if (content) { content.classList.remove('ghost'); content.classList.add('visible'); }
     } else {
       // Autres étages : masquer complètement
       fu.classList.add('sc-floor-hidden');
@@ -272,6 +293,7 @@ function closeFloor() {
     if (fo) fo.classList.remove('hidden');
     if (ct) {
       ct.classList.remove('visible');
+      ct.classList.add('ghost');
       ct.querySelectorAll('.sc-item').forEach(el => el.classList.remove('entered'));
     }
   });

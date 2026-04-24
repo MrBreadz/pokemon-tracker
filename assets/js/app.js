@@ -166,6 +166,7 @@ function renderPage(page) {
     else if (page === 'graded') renderGraded();
     else if (page === 'chase') renderChase();
     else if (page === 'gallery') renderGallery();
+    else if (page === 'showcase') renderShowcase();
   } catch(e) {
     console.error('renderPage[' + page + ']:', e);
   }

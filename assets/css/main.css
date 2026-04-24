@@ -1313,7 +1313,7 @@ td {
 }
 .sc-floor-unit {
   position: relative;
-  height: 210px;
+  height: 170px;
   border-bottom: 2px solid #1e1e25;
   overflow: hidden;
 }
@@ -1342,7 +1342,7 @@ td {
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: all 0.3s;
-  background: rgba(10,10,15,0.15);
+  background: rgba(8,8,12,0.45);
 }
 .sc-floor-overlay:hover { background: rgba(239,35,60,0.05); }
 .sc-floor-overlay.hidden { opacity: 0; pointer-events: none; }
@@ -1378,13 +1378,20 @@ td {
   position: absolute; inset: 4px 14px 14px;
   display: flex; align-items: flex-end; gap: 10px;
   padding: 8px 6px 6px;
-  overflow-x: auto; overflow-y: hidden;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s 0.2s;
+  overflow: hidden;
+  opacity: 1;
+  pointer-events: none;
+  filter: blur(3px);
+  transition: opacity 0.3s 0.1s, filter 0.4s;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.1) transparent;
 }
-.sc-floor-content.visible { opacity: 1; pointer-events: all; }
+.sc-floor-content.visible {
+  pointer-events: all;
+  filter: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .sc-floor-empty {
   color: rgba(255,255,255,0.2); font-size: 11px;
   width: 100%; text-align: center; padding-top: 20px;
@@ -1450,10 +1457,18 @@ td {
 /* ===== ITEMS ===== */
 .sc-item {
   flex-shrink: 0; cursor: pointer; position: relative;
-  opacity: 0; transform: translateY(20px) scale(0.92);
-  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.25s, box-shadow 0.25s;
+  opacity: 0.75; transform: translateY(0) scale(0.96);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s, box-shadow 0.25s;
 }
-.sc-item.entered { opacity: 1; transform: translateY(0) scale(1); }
+/* Avant ouverture : items visibles mais atténués (blur géré par parent) */
+.sc-floor-content:not(.visible) .sc-item { pointer-events: none; }
+/* Après ouverture : animation d'entrée */
+.sc-floor-content.visible .sc-item {
+  opacity: 0; transform: translateY(18px) scale(0.93);
+}
+.sc-floor-content.visible .sc-item.entered {
+  opacity: 1; transform: translateY(0) scale(1);
+}
 .sc-item:hover   { transform: translateY(-10px) scale(1.04) !important; z-index: 10; }
 .sc-item:hover .sc-item-shadow { opacity: 0.7; transform: scaleX(1.2) translateY(4px); }
 .sc-item:hover .sc-item-btns   { opacity: 1; }
@@ -1648,6 +1663,29 @@ td {
 }
 .scv-notes { font-size: 13px; color: rgba(255,255,255,0.38); font-style: italic; line-height: 1.6; }
 
+
+
+/* Items fantômes visibles en état fermé (floutés derrière l'overlay) */
+.sc-floor-content.ghost {
+  opacity: 1 !important;
+  pointer-events: none !important;
+  filter: blur(3px) brightness(0.55);
+  transform: none;
+}
+.sc-floor-content.ghost .sc-item {
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+}
+.sc-floor-content.ghost .sc-item-btns { display: none; }
+
+/* Au hover de l'overlay, réduire un peu le flou */
+.sc-floor-unit:hover .sc-floor-content.ghost {
+  filter: blur(1.5px) brightness(0.7);
+  transition: filter 0.3s;
+}
+.sc-floor-unit:hover .sc-floor-overlay {
+  background: rgba(8,8,12,0.35);
+}
 
 /* Étage actif : plein écran dans la vitrine */
 .sc-floor-active {

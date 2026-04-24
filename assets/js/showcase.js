@@ -79,7 +79,6 @@ function buildShowcaseHTML() {
                 <div class="sc-floor-label-wrap">
                   <div class="sc-floor-label-icon">${floor.icon}</div>
                   <div class="sc-floor-label-text">${floor.label}</div>
-                  <div class="sc-floor-label-sub">${floor.sub}</div>
                   <div class="sc-floor-label-count">${items.length} item${items.length!==1?'s':''}</div>
                 </div>
               </div>
@@ -197,54 +196,51 @@ function openFloor(floorId) {
   const doorL = document.getElementById('sc-door-left');
   const doorR = document.getElementById('sc-door-right');
 
-  // Ouvrir les portes
   doorL.classList.add('open');
   doorR.classList.add('open');
 
-  // Après ouverture portes → zoom sur l'étage
-  setTimeout(() => {
-    zoomToFloor(floorId);
-  }, 600);
+  setTimeout(() => { zoomToFloor(floorId); }, 650);
 }
 
 function zoomToFloor(floorId) {
-  const floorEl = document.getElementById(`fu-${floorId}`);
-  const overlay = document.getElementById(`fo-${floorId}`);
-  const cabinet = document.getElementById('sc-cabinet-wrap');
   const backBtn = document.getElementById('sc-back-btn');
   const addFab  = document.getElementById('sc-add-fab');
+  const doors   = document.getElementById('sc-doors');
 
-  if (!floorEl) return;
+  // Masquer les portes après ouverture
+  if (doors) doors.style.opacity = '0';
 
-  // Calculer position pour centrer l'étage
-  const scene    = document.getElementById('sc-scene');
-  const sceneH   = scene.offsetHeight;
-  const floorTop = floorEl.offsetTop;
-  const floorH   = floorEl.offsetHeight;
-  const cabTop   = document.getElementById('sc-cabinet').offsetTop;
+  // Masquer TOUS les autres étages
+  SHOWCASE_FLOORS.forEach(f => {
+    const fu = document.getElementById(`fu-${f.id}`);
+    const fo = document.getElementById(`fo-${f.id}`);
+    if (!fu || !fo) return;
+    if (f.id === floorId) {
+      // Étage actif : masquer overlay, montrer contenu, agrandir
+      fo.classList.add('hidden');
+      fu.classList.add('sc-floor-active');
+      const content = document.getElementById(`fc-${f.id}`);
+      if (content) content.classList.add('visible');
+    } else {
+      // Autres étages : masquer complètement
+      fu.classList.add('sc-floor-hidden');
+    }
+  });
 
-  // Masquer overlay label
-  overlay.classList.add('hidden');
-
-  // Afficher contenu
-  const content = document.getElementById(`fc-${floorId}`);
-  content.classList.add('visible');
-
-  // Zoom CSS 3D
-  cabinet.classList.add('zoomed');
-  cabinet.style.setProperty('--floor-offset', `-${cabTop + floorTop - (sceneH/2 - floorH/2)}px`);
+  // Agrandir la vitrine pour ne montrer que cet étage
+  const cabinet = document.getElementById('sc-cabinet-wrap');
+  cabinet.classList.add('floor-open');
 
   showcaseState = 'floor';
   backBtn.classList.add('visible');
   addFab.classList.add('visible');
 
-  // Animer items avec délai
+  // Animer items
   setTimeout(() => {
-    const items = document.querySelectorAll(`#fc-${floorId} .sc-item`);
-    items.forEach((el, i) => {
-      setTimeout(() => el.classList.add('entered'), i * 60);
+    document.querySelectorAll(`#fc-${floorId} .sc-item`).forEach((el, i) => {
+      setTimeout(() => el.classList.add('entered'), i * 55);
     });
-  }, 200);
+  }, 150);
 }
 
 function closeFloor() {
@@ -255,26 +251,30 @@ function closeFloor() {
   const cabinet = document.getElementById('sc-cabinet-wrap');
   const backBtn = document.getElementById('sc-back-btn');
   const addFab  = document.getElementById('sc-add-fab');
+  const doors   = document.getElementById('sc-doors');
 
-  // Reset zoom
-  cabinet.classList.remove('zoomed');
+  // Retirer classe floor-open
+  cabinet.classList.remove('floor-open');
 
-  // Remettre overlay labels + masquer contenu
+  // Remettre les portes visibles puis les fermer
+  if (doors) doors.style.opacity = '';
+  setTimeout(() => {
+    doorL.classList.remove('open');
+    doorR.classList.remove('open');
+  }, 100);
+
+  // Remettre tous les étages visibles
   SHOWCASE_FLOORS.forEach(f => {
-    const ov = document.getElementById(`fo-${f.id}`);
+    const fu = document.getElementById(`fu-${f.id}`);
+    const fo = document.getElementById(`fo-${f.id}`);
     const ct = document.getElementById(`fc-${f.id}`);
-    if (ov) ov.classList.remove('hidden');
+    if (fu) { fu.classList.remove('sc-floor-active'); fu.classList.remove('sc-floor-hidden'); }
+    if (fo) fo.classList.remove('hidden');
     if (ct) {
       ct.classList.remove('visible');
       ct.querySelectorAll('.sc-item').forEach(el => el.classList.remove('entered'));
     }
   });
-
-  // Fermer portes
-  setTimeout(() => {
-    doorL.classList.remove('open');
-    doorR.classList.remove('open');
-  }, 200);
 
   backBtn.classList.remove('visible');
   addFab.classList.remove('visible');

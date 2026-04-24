@@ -36,6 +36,7 @@
       <a class="nav-item" data-page="graded"><span class="nav-icon">🏆</span><span>Cartes Gradées</span><span class="nav-badge" id="badge-graded">—</span></a>
       <a class="nav-item" data-page="chase"><span class="nav-icon">🌟</span><span>Chase Cards</span><span class="nav-badge" id="badge-chase">—</span></a>
       <a class="nav-item" data-page="gallery"><span class="nav-icon">🖼️</span><span>Vitrine</span></a>
+      <a class="nav-item" data-page="showcase"><span class="nav-icon">🗄️</span><span>Vitrine Digitale</span></a>
     </nav>
     <div class="sidebar-footer">
       <button class="theme-toggle" id="theme-toggle">
@@ -177,6 +178,10 @@
 
 
     <!-- VITRINE PREMIUM -->
+    <div class="page-section" id="page-showcase" style="display:none;padding:0">
+      <div id="showcase-container" style="min-height:100vh"></div>
+    </div>
+
     <div class="page-section" id="page-gallery" style="display:none;padding:0">
       <div id="gallery-container" style="min-height:100vh"></div>
     </div>
@@ -340,6 +345,75 @@
 <script src="./assets/js/cartes.js"></script>
 <script src="./assets/js/chase_export.js"></script>
 <script src="./assets/js/gallery.js"></script>
+  <script src="./assets/js/showcase.js"></script>
 <script type="module" src="./assets/js/firebase.js"></script>
+
+<!-- MODAL SHOWCASE -->
+<div class="modal-overlay" id="modal-showcase" style="display:none">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title" id="sc-modal-title">Ajouter à la vitrine</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Étage</label>
+      <select class="form-select" id="sc-item-floor">
+        <option value="floor1">📦 Scellé Classique</option>
+        <option value="floor2">🏆 Scellé Premium</option>
+        <option value="floor3">✨ Cartes Loose</option>
+        <option value="floor4">🎖️ Cartes Gradées</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nom *</label>
+      <input class="form-input" id="sc-item-nom" type="text" placeholder="Ex: ETB Foudre Noire">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Prix (€)</label>
+        <input class="form-input" id="sc-item-prix" type="number" step="0.01" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <input class="form-input" id="sc-item-notes" type="text" placeholder="Optionnel">
+      </div>
+    </div>
+    <!-- Champs spécifiques gradées -->
+    <div id="sc-graded-fields" style="display:none">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Note (ex: PSA 9)</label>
+          <input class="form-input" id="sc-item-grade" type="text" placeholder="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gradeur</label>
+          <select class="form-select" id="sc-item-gradeur">
+            <option value="">— Choisir —</option>
+            <option>PSA</option><option>CGC</option><option>PCA</option>
+            <option>Collect Aura</option><option>Ace Grading</option><option>SFG</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- Photo -->
+    <div class="form-group">
+      <label class="form-label">Photo</label>
+      <div class="photo-upload" id="sc-img-preview">
+        <div style="font-size:28px;opacity:0.3">🖼️</div>
+        <div style="font-size:11px;opacity:0.3;margin-top:4px">Cliquez pour uploader</div>
+      </div>
+      <input type="file" id="sc-img-input" accept="image/*" style="display:none">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ou URL image</label>
+      <input class="form-input" id="sc-item-url" type="url" placeholder="https://...">
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+      <button type="button" class="btn btn-primary" id="btn-save-showcase-item">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

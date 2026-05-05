@@ -15,6 +15,7 @@ function renderChase() {
       <div style="display:flex;flex-direction:column;gap:6px;flex:1">
         <div class="chase-name">${item.nom}</div>
         <span class="badge ${getChaseStatutBadge(item.statut)}">${getChaseStatutLabel(item.statut)}</span>
+        ${item.type && item.type !== 'Carte' ? `<span class="badge badge-type" style="font-size:9px">${item.type}</span>` : ''}
         ${item.notes ? `<div style="font-size:11px;color:var(--text-3);font-style:italic;line-height:1.4">${item.notes}</div>` : ''}
       </div>
       <div style="display:flex;gap:6px;margin-top:8px">

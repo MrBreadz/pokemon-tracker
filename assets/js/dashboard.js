@@ -244,9 +244,9 @@ function renderTopValueChart() {
   const el = document.getElementById('chart-topval-list');
   if (!el) return;
   const items = [
-    ...APP.data.graded.map(i=>({nom:i.nom.split(' ').slice(0,5).join(' '), val:i.prixAchat, type:'Gradée'})),
-    ...APP.data.sealed.filter(i=>i.prixAchat>0).map(i=>({nom:i.nom.split(' ').slice(0,5).join(' '), val:i.prixAchat, type:'Scellé'})),
-  ].sort((a,b)=>b.val-a.val).slice(0,8);
+    ...APP.data.graded.map(i=>({nom:i.nom.split(' ').slice(0,5).join(' '), val:i.prixMarche||i.prixAchat||0, type:'Gradée'})),
+    ...APP.data.sealed.filter(i=>i.prixMarche||i.prixAchat).map(i=>({nom:i.nom.split(' ').slice(0,5).join(' '), val:(i.prixMarche||i.prixAchat)||0, type:'Scellé'})),
+  ].filter(i=>i.val>0).sort((a,b)=>b.val-a.val).slice(0,8);
 
   el.innerHTML = items.map((item, i) => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;background:rgba(255,255,255,0.5);border:1px solid rgba(43,45,66,0.07);margin-bottom:5px;transition:all 0.15s">

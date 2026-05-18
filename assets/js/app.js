@@ -146,7 +146,7 @@ function navigate(page) {
   });
 
   // Titre topbar
-  const titles = {dashboard:'📊 Dashboard', sealed:'📦 Collection Scellée', graded:'🏆 Cartes Gradées', chase:'🌟 Chase Cards', gallery:'🖼️ Vitrine'};
+  const titles = {dashboard:'📊 Dashboard', sealed:'📦 Collection Scellée', graded:'🏆 Cartes Gradées', chase:'🌟 Chase Items', gallery:'🖼️ Vitrine', links:'🔗 Liens Rapides'};
   const t = document.getElementById('topbar-title');
   if (t) t.textContent = titles[page] || page;
 
@@ -166,6 +166,7 @@ function renderPage(page) {
     else if (page === 'graded') renderGraded();
     else if (page === 'chase') renderChase();
     else if (page === 'gallery') renderGallery();
+    else if (page === 'links') renderLinks();
   } catch(e) {
     console.error('renderPage[' + page + ']:', e);
   }

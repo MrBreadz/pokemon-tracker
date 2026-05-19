@@ -843,12 +843,12 @@ td {
 /* HEADER */
 .pv-header {
   display: flex; align-items: center; gap: 12px;
-  padding: 20px 24px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
   flex-wrap: wrap;
   position: relative; z-index: 5;
-  background: rgba(0,0,0,0.2);
-  backdrop-filter: blur(10px);
+  background: rgba(6,6,14,0.75);
+  backdrop-filter: blur(14px);
 }
 .pv-search-wrap { position: relative; flex:1; min-width:160px; }
 .pv-search {
@@ -947,6 +947,7 @@ td {
   min-height: 600px;
   overflow: hidden;
   z-index: 1;
+  margin-top: -1px;
 }
 .pv-hero-bg {
   position: absolute; inset: 0;
@@ -988,7 +989,7 @@ td {
   animation: heroFloat 6s ease-in-out infinite;
   filter: drop-shadow(0 40px 60px rgba(0,0,0,0.8));
   pointer-events: all;
-  margin-top: -40px;
+  margin-top: -60px;
 }
 @keyframes heroFloat {
   0%,100% { transform: translateY(0) rotate(-0.8deg); }
@@ -1885,4 +1886,20 @@ td {
 
 @media (max-width: 600px) {
   .lk-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+}
+
+/* Bouton ajouter avec texte */
+.pv-btn-add-text {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: 9px;
+  background: rgba(239,35,60,0.12);
+  border: 1px solid rgba(239,35,60,0.25);
+  color: #EF233C; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  font-family: var(--font-body); white-space: nowrap;
+}
+.pv-btn-add-text:hover {
+  background: rgba(239,35,60,0.22);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(239,35,60,0.2);
 }

@@ -1,6 +1,6 @@
 // ===== VITRINE PREMIUM v2.1 =====
 let galleryItems = [];
-let galleryMode = 'showcase';
+const galleryMode = 'showcase';
 let galleryFilter = 'all';
 let gallerySearch = '';
 let heroIndex = 0;
@@ -68,21 +68,8 @@ function buildGalleryHTML() {
 
       </div>
       <div class="pv-actions">
-        <div class="pv-mode-toggle">
-          <button class="pv-mode-btn ${galleryMode==='showcase'?'active':''}" onclick="setGalleryMode('showcase')" title="Mode vitrine">
-            <span class="mode-icon-showcase">
-              <span></span><span></span><span></span>
-            </span>
-            Vitrine
-          </button>
-          <button class="pv-mode-btn ${galleryMode==='grid'?'active':''}" onclick="setGalleryMode('grid')" title="Mode grille">
-            <span class="mode-icon-grid">
-              <span></span><span></span><span></span><span></span>
-            </span>
-            Grille
-          </button>
-        </div>
-        <button class="pv-btn pv-btn-add" onclick="openAddGalleryItem()" title="Ajouter">＋</button>
+
+        <button class="pv-btn-add-text" onclick="openAddGalleryItem()">＋ Ajouter un item</button>
       </div>
     </div>
 
@@ -187,22 +174,6 @@ function buildCard(item, i) {
         </div>
       </div>
     </div>`;
-  } else {
-    // MODE GRILLE : compact, juste image + nom
-    return `
-    <div class="pv-card pv-card-grid" style="animation-delay:${delay}s" data-id="${item.id}" onclick="openItemFullscreen('${item.id}')">
-      <div class="pv-grid-img">
-        ${item.image
-          ? `<img src="${item.image}" alt="${item.nom}">`
-          : `<div class="pv-card-no-img" style="font-size:28px">${item.cat==='graded'?'🏆':item.cat==='sealed'?'📦':'💎'}</div>`
-        }
-        ${isFav ? '<div class="pv-fav-badge">⭐</div>' : ''}
-        <div class="pv-grid-overlay">
-          <div style="font-size:11px;font-weight:600;color:#fff;text-align:center;padding:0 8px">${item.nom}</div>
-          ${item.prix ? `<div style="color:#E8B422;font-size:11px;font-weight:700;margin-top:3px">${formatPrice(item.prix)}</div>` : ''}
-        </div>
-      </div>
-    </div>`;
   }
 }
 
@@ -224,7 +195,7 @@ function setHero(i) { heroIndex = i; renderGallery(); }
 
 // ===== ACTIONS =====
 function setGalleryFilter(f) { galleryFilter = f; heroIndex = 0; renderGallery(); }
-function setGalleryMode(m) { galleryMode = m; renderGallery(); }
+
 
 function toggleFav(id) {
   if (favIds.includes(id)) favIds = favIds.filter(i => i !== id);

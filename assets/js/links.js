@@ -183,10 +183,26 @@ function buildCategory(cat) {
   </div>`;
 }
 
+function getFavicon(url) {
+  try {
+    const domain = new URL(url).hostname;
+    // Google Favicon API - haute qualité 64px
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  } catch(e) {
+    return null;
+  }
+}
+
 function buildLinkCard(link, catId) {
+  const favicon = getFavicon(link.url);
   return `
   <a class="lk-card" href="${link.url}" target="_blank" rel="noopener">
-    <div class="lk-card-icon">${link.icon || '🔗'}</div>
+    <div class="lk-card-icon lk-card-favicon">
+      <img src="${favicon}" alt="" class="lk-favicon"
+           onerror="this.style.display='none';this.nextSibling.style.display='flex'"
+           loading="lazy">
+      <span class="lk-favicon-fallback" style="display:none">${link.icon || '🔗'}</span>
+    </div>
     <div class="lk-card-body">
       <div class="lk-card-name">${link.name}</div>
       ${link.desc ? `<div class="lk-card-desc">${link.desc}</div>` : ''}
@@ -239,6 +255,33 @@ function saveLinkItem() {
   showToast('Lien ajouté ✓', 'success');
 }
 
+// Auto-remplir le nom depuis l'URL collée
+function initLinkUrlAutofill() {
+  const urlInput  = document.getElementById('link-url');
+  const nameInput = document.getElementById('link-name');
+  const preview   = document.getElementById('link-favicon-preview');
+  if (!urlInput) return;
+
+  urlInput.addEventListener('blur', () => {
+    const url = urlInput.value.trim();
+    if (!url.startsWith('http')) return;
+    // Mettre à jour le favicon preview
+    try {
+      const domain = new URL(url).hostname;
+      const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      if (preview) {
+        preview.src = faviconUrl;
+        preview.style.display = 'block';
+      }
+      // Auto-remplir le nom si vide avec le domaine nettoyé
+      if (nameInput && !nameInput.value) {
+        const cleaned = domain.replace(/^www\./, '').split('.')[0];
+        nameInput.value = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      }
+    } catch(e) {}
+  });
+}
+
 function deleteLinkItem(linkId, catId) {
   const cat = linksData.find(c => c.id === catId);
   if (!cat) return;
@@ -275,4 +318,4 @@ function deleteLinkCategory(catId) {
   showToast('Catégorie supprimée', 'info');
 }
 
-function initLinksEvents() {}
+function initLinksEvents() { initLinkUrlAutofill(); }

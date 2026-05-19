@@ -950,13 +950,14 @@ td {
   margin-top: -1px;
 }
 .pv-hero-bg {
-  position: absolute; inset: 0;
+  position: absolute;
+  top: -30px; left: -30px; right: -30px; bottom: -30px;
   background-size: cover; background-position: center;
-  filter: blur(28px) brightness(0.2) saturate(1.4);
-  transform: scale(1.15);
+  background-color: #06060e;
+  filter: blur(28px) brightness(0.18) saturate(1.4);
   transition: transform 0.8s ease;
 }
-.pv-hero:hover .pv-hero-bg { transform: scale(1.2); }
+.pv-hero:hover .pv-hero-bg { transform: scale(1.03); }
 .pv-hero-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(180deg,
@@ -987,9 +988,10 @@ td {
   width: auto;
   position: relative;
   animation: heroFloat 6s ease-in-out infinite;
-  filter: drop-shadow(0 40px 60px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 30px 50px rgba(0,0,0,0.75));
   pointer-events: all;
-  margin-top: -60px;
+  margin-top: -50px;
+  overflow: visible;
 }
 @keyframes heroFloat {
   0%,100% { transform: translateY(0) rotate(-0.8deg); }

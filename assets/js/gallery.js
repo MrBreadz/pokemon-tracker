@@ -121,30 +121,27 @@ function buildHero(item, allItems) {
     <div class="pv-hero-overlay"></div>
 
     <!-- Contenu -->
-    <div class="pv-hero-inner" style="justify-content:center;align-items:flex-end;padding-bottom:0">
-      <!-- Image grande centrée -->
-      <div class="pv-hero-visual" style="display:flex;flex-direction:column;align-items:center;width:100%;position:relative">
-        <div class="pv-hero-img-wrap" style="width:auto;height:320px;margin:0 auto">
+    <div class="pv-hero-inner">
+      <!-- Image plein écran centrée -->
+      <div class="pv-hero-visual">
+        <div class="pv-hero-img-wrap">
           ${item.image
-            ? `<img src="${item.image}" alt="${item.nom}" class="pv-hero-img" style="height:100%;width:auto;max-width:300px" onclick="openItemFullscreen('${item.id}')">`
-            : `<div class="pv-hero-placeholder" style="font-size:100px">${item.cat==='graded'?'🏆':item.cat==='sealed'?'📦':'💎'}</div>`
+            ? `<img src="${item.image}" alt="${item.nom}" class="pv-hero-img" onclick="openItemFullscreen('${item.id}')">`
+            : `<div class="pv-hero-placeholder">${item.cat==='graded'?'🏆':item.cat==='sealed'?'📦':'💎'}</div>`
           }
           <div class="pv-hero-shine"></div>
         </div>
-        <!-- Infos en bas de l'image -->
-        <div style="width:100%;background:linear-gradient(0deg,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.4) 60%,transparent 100%);padding:24px 32px 20px;text-align:center;margin-top:-40px;position:relative;z-index:3">
-          <div class="pv-hero-label" style="margin-bottom:8px">★ PIÈCE VEDETTE</div>
-          <div class="pv-hero-nom" style="font-size:24px;margin-bottom:10px">${item.nom}</div>
-          <div class="pv-hero-meta" style="justify-content:center">
-            <span class="pv-tag">${item.cat==='graded'?'🏆 Gradée':item.cat==='sealed'?'📦 Scellé':'💎 Rare'}</span>
-            ${item.prix ? `<span class="pv-tag pv-tag-gold">${formatPrice(item.prix)}</span>` : ''}
-            ${isFav ? '<span class="pv-tag" style="color:#E8B422">⭐</span>' : ''}
-          </div>
-          <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
-            <button onclick="openItemFullscreen('${item.id}')" style="padding:8px 18px;background:rgba(239,35,60,0.15);border:1px solid rgba(239,35,60,0.3);color:#ef233c;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body)">Voir en détail →</button>
-            <button onclick="toggleFav('${item.id}')" style="padding:8px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:${isFav?'#E8B422':'rgba(255,255,255,0.4)'};border-radius:8px;cursor:pointer;font-size:15px;font-family:var(--font-body)">⭐</button>
-          </div>
+      </div>
+      <!-- Infos en bas -->
+      <div class="pv-hero-info">
+        <div class="pv-hero-label">★ PIÈCE VEDETTE</div>
+        <div class="pv-hero-nom">${item.nom}</div>
+        <div class="pv-hero-meta">
+          <span class="pv-tag">${item.cat==='graded'?'🏆 Gradée':item.cat==='sealed'?'📦 Scellé':'💎 Rare'}</span>
+          ${item.prix ? `<span class="pv-tag pv-tag-gold">${formatPrice(item.prix)}</span>` : ''}
+          ${isFav ? '<span class="pv-tag" style="color:#E8B422">⭐ Préféré</span>' : ''}
         </div>
+        <button onclick="toggleFav('${item.id}')" style="padding:8px 18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:${isFav?'#E8B422':'rgba(255,255,255,0.5)'};border-radius:8px;cursor:pointer;font-size:14px;font-family:var(--font-body);transition:all 0.2s">⭐ ${isFav?'Dans mes préférés':'Ajouter aux préférés'}</button>
       </div>
     </div>
 

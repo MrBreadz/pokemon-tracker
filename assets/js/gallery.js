@@ -140,7 +140,6 @@ function buildHero(item, allItems) {
 }
 
 function buildCard(item, i) {
-  const isFav = favIds.includes(item.id);
   const delay = Math.min(i * 0.05, 0.5);
 
   if (galleryMode === 'showcase') {
@@ -167,7 +166,6 @@ function buildCard(item, i) {
         <div class="pv-card-footer-row">
           ${item.prix ? `<span class="pv-card-prix">${formatPrice(item.prix)}</span>` : '<span></span>'}
           <div style="display:flex;gap:4px">
-            <button class="pv-icon-btn ${isFav?'fav-active':''}" onclick="toggleFav('${item.id}')" title="Favori">⭐</button>
             <button class="pv-icon-btn" onclick="editGalleryItem('${item.id}')" title="Modifier">✏️</button>
             <button class="pv-icon-btn danger" onclick="deleteGalleryItem('${item.id}')" title="Supprimer">🗑️</button>
           </div>

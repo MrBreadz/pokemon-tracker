@@ -981,13 +981,14 @@ td {
   pointer-events: none;
 }
 .pv-hero-img-wrap {
-  height: 72vh;
-  max-height: 560px;
+  height: 82vh;
+  max-height: 660px;
   width: auto;
   position: relative;
   animation: heroFloat 6s ease-in-out infinite;
   filter: drop-shadow(0 40px 60px rgba(0,0,0,0.8));
   pointer-events: all;
+  margin-top: -40px;
 }
 @keyframes heroFloat {
   0%,100% { transform: translateY(0) rotate(-0.8deg); }
@@ -995,8 +996,8 @@ td {
 }
 .pv-hero-img {
   height: 100%; width: auto;
-  max-width: 380px;
-  object-fit: contain; border-radius: 14px;
+  max-width: 460px;
+  object-fit: contain; border-radius: 10px;
   cursor: pointer;
   box-shadow: 0 30px 80px rgba(0,0,0,0.85), 0 0 60px rgba(239,35,60,0.12);
   transition: filter 0.3s, transform 0.3s;
@@ -1015,9 +1016,9 @@ td {
 /* Bloc infos collé en bas */
 .pv-hero-info {
   width: 100%;
-  padding: 28px 40px 36px;
+  padding: 40px 40px 36px;
   display: flex; flex-direction: column; align-items: center;
-  gap: 10px; text-align: center;
+  gap: 12px; text-align: center;
   position: relative; z-index: 3;
 }
 .pv-hero-label {

@@ -121,31 +121,29 @@ function buildHero(item, allItems) {
     <div class="pv-hero-overlay"></div>
 
     <!-- Contenu -->
-    <div class="pv-hero-inner">
-      <!-- Image -->
-      <div class="pv-hero-visual">
-        <div class="pv-hero-img-wrap">
+    <div class="pv-hero-inner" style="justify-content:center;align-items:flex-end;padding-bottom:0">
+      <!-- Image grande centrée -->
+      <div class="pv-hero-visual" style="display:flex;flex-direction:column;align-items:center;width:100%;position:relative">
+        <div class="pv-hero-img-wrap" style="width:auto;height:320px;margin:0 auto">
           ${item.image
-            ? `<img src="${item.image}" alt="${item.nom}" class="pv-hero-img" onclick="openItemFullscreen('${item.id}')">`
-            : `<div class="pv-hero-placeholder">${item.cat==='graded'?'🏆':item.cat==='sealed'?'📦':'💎'}</div>`
+            ? `<img src="${item.image}" alt="${item.nom}" class="pv-hero-img" style="height:100%;width:auto;max-width:300px" onclick="openItemFullscreen('${item.id}')">`
+            : `<div class="pv-hero-placeholder" style="font-size:100px">${item.cat==='graded'?'🏆':item.cat==='sealed'?'📦':'💎'}</div>`
           }
           <div class="pv-hero-shine"></div>
         </div>
-      </div>
-
-      <!-- Infos -->
-      <div class="pv-hero-info">
-        <div class="pv-hero-label">★ PIÈCE VEDETTE</div>
-        <div class="pv-hero-nom">${item.nom}</div>
-        <div class="pv-hero-meta">
-          <span class="pv-tag">${item.cat==='graded'?'🏆 Gradée':item.cat==='sealed'?'📦 Scellé':'💎 Rare'}</span>
-          ${item.prix ? `<span class="pv-tag pv-tag-gold">${formatPrice(item.prix)}</span>` : ''}
-          ${isFav ? '<span class="pv-tag" style="color:#E8B422">⭐ Préféré</span>' : ''}
-        </div>
-        ${item.notes ? `<div style="color:rgba(255,255,255,0.4);font-size:13px;margin-top:12px;font-style:italic">"${item.notes}"</div>` : ''}
-        <div style="margin-top:20px;display:flex;gap:10px">
-          <button onclick="openItemFullscreen('${item.id}')" style="padding:10px 20px;background:rgba(232,180,34,0.15);border:1px solid rgba(232,180,34,0.3);color:#E8B422;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font-body)">Voir en détail →</button>
-          <button onclick="toggleFav('${item.id}')" style="padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:${isFav?'#E8B422':'rgba(255,255,255,0.4)'};border-radius:8px;cursor:pointer;font-size:16px;font-family:var(--font-body);transition:all 0.2s">⭐</button>
+        <!-- Infos en bas de l'image -->
+        <div style="width:100%;background:linear-gradient(0deg,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.4) 60%,transparent 100%);padding:24px 32px 20px;text-align:center;margin-top:-40px;position:relative;z-index:3">
+          <div class="pv-hero-label" style="margin-bottom:8px">★ PIÈCE VEDETTE</div>
+          <div class="pv-hero-nom" style="font-size:24px;margin-bottom:10px">${item.nom}</div>
+          <div class="pv-hero-meta" style="justify-content:center">
+            <span class="pv-tag">${item.cat==='graded'?'🏆 Gradée':item.cat==='sealed'?'📦 Scellé':'💎 Rare'}</span>
+            ${item.prix ? `<span class="pv-tag pv-tag-gold">${formatPrice(item.prix)}</span>` : ''}
+            ${isFav ? '<span class="pv-tag" style="color:#E8B422">⭐</span>' : ''}
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
+            <button onclick="openItemFullscreen('${item.id}')" style="padding:8px 18px;background:rgba(239,35,60,0.15);border:1px solid rgba(239,35,60,0.3);color:#ef233c;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body)">Voir en détail →</button>
+            <button onclick="toggleFav('${item.id}')" style="padding:8px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:${isFav?'#E8B422':'rgba(255,255,255,0.4)'};border-radius:8px;cursor:pointer;font-size:15px;font-family:var(--font-body)">⭐</button>
+          </div>
         </div>
       </div>
     </div>
@@ -248,16 +246,29 @@ function openItemFullscreen(id) {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:20px';
   overlay.innerHTML = `
-    <div style="max-width:520px;width:100%;text-align:center;position:relative">
-      <button onclick="this.closest('[style*=fixed]').remove()" style="position:absolute;top:-40px;right:0;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;font-family:var(--font-body)">✕ Fermer</button>
-      ${item.image ? `<img src="${item.image}" style="max-width:100%;max-height:55vh;border-radius:20px;box-shadow:0 0 80px rgba(232,180,34,0.3),0 30px 80px rgba(0,0,0,0.9);object-fit:contain;margin-bottom:24px;display:block;margin-left:auto;margin-right:auto">` : `<div style="font-size:80px;margin-bottom:24px">${item.cat==='graded'?'🏆':item.cat==='sealed'?'📦':'💎'}</div>`}
-      <div style="color:#fff;font-weight:800;font-size:22px;margin-bottom:10px;font-family:var(--font-display)">${item.nom}</div>
-      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">
-        <span style="background:rgba(255,255,255,0.08);padding:5px 14px;border-radius:20px;font-size:12px;color:rgba(255,255,255,0.6)">${item.cat==='graded'?'🏆 Gradée':item.cat==='sealed'?'📦 Scellé':'💎 Rare'}</span>
-        ${item.prix ? `<span style="background:rgba(232,180,34,0.15);border:1px solid rgba(232,180,34,0.3);padding:5px 14px;border-radius:20px;font-size:12px;color:#E8B422;font-weight:700">${formatPrice(item.prix)}</span>` : ''}
-        ${isFav ? '<span style="background:rgba(232,180,34,0.1);padding:5px 14px;border-radius:20px;font-size:12px;color:#E8B422">⭐ Préféré</span>' : ''}
+    <div style="max-width:900px;width:100%;display:flex;align-items:center;gap:40px;position:relative">
+      <button onclick="this.closest('[style*=fixed]').remove()" style="position:absolute;top:-44px;right:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:8px;padding:7px 16px;cursor:pointer;font-size:13px;font-family:var(--font-body);transition:all 0.2s">✕ Fermer</button>
+      <!-- Image grande -->
+      <div style="flex-shrink:0;display:flex;align-items:center;justify-content:center">
+        ${item.image
+          ? `<img src="${item.image}" style="max-width:min(480px,55vw);max-height:78vh;border-radius:16px;box-shadow:0 0 100px rgba(239,35,60,0.15),0 40px 100px rgba(0,0,0,0.95);object-fit:contain;display:block">`
+          : `<div style="font-size:100px;filter:drop-shadow(0 0 30px rgba(239,35,60,0.3))">${item.cat==='graded'?'🏆':item.cat==='sealed'?'📦':'💎'}</div>`
+        }
       </div>
-      ${item.notes ? `<div style="color:rgba(255,255,255,0.45);font-size:14px;font-style:italic;line-height:1.6">"${item.notes}"</div>` : ''}
+      <!-- Infos droite -->
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+          <span style="background:rgba(239,35,60,0.1);border:1px solid rgba(239,35,60,0.2);padding:4px 13px;border-radius:20px;font-size:11px;color:#ef233c;font-weight:600">${item.cat==='graded'?'🏆 Gradée':item.cat==='sealed'?'📦 Scellé':'💎 Rare'}</span>
+          ${isFav ? '<span style="background:rgba(232,180,34,0.1);border:1px solid rgba(232,180,34,0.2);padding:4px 13px;border-radius:20px;font-size:11px;color:#E8B422;font-weight:600">⭐ Préféré</span>' : ''}
+        </div>
+        <div style="color:#fff;font-weight:800;font-size:28px;margin-bottom:14px;font-family:var(--font-display);line-height:1.2;letter-spacing:-0.5px">${item.nom}</div>
+        ${item.prix ? `<div style="font-size:22px;font-weight:700;color:rgba(255,255,255,0.65);margin-bottom:16px">${formatPrice(item.prix)}</div>` : ''}
+        ${item.notes ? `<div style="color:rgba(255,255,255,0.4);font-size:14px;font-style:italic;line-height:1.7;border-top:1px solid rgba(255,255,255,0.07);padding-top:16px">"${item.notes}"</div>` : ''}
+        <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap">
+          <button onclick="editGalleryItem('${item.id}');this.closest('[style*=fixed]').remove()" style="padding:10px 20px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font-body)">✏️ Modifier</button>
+          <button onclick="toggleFav('${item.id}');this.closest('[style*=fixed]').remove()" style="padding:10px 16px;background:${isFav?'rgba(232,180,34,0.15)':'rgba(255,255,255,0.05)'};border:1px solid ${isFav?'rgba(232,180,34,0.3)':'rgba(255,255,255,0.1)'};color:${isFav?'#E8B422':'rgba(255,255,255,0.4)'};border-radius:9px;cursor:pointer;font-size:16px;font-family:var(--font-body)">⭐</button>
+        </div>
+      </div>
     </div>`;
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   document.body.appendChild(overlay);

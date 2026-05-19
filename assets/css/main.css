@@ -943,7 +943,7 @@ td {
 /* ===== HERO ===== */
 .pv-hero {
   position: relative;
-  height: 380px; /* augmenté */
+  height: 480px;
   overflow: hidden;
   z-index: 1;
 }
@@ -1810,6 +1810,17 @@ td {
   background: rgba(43,45,66,0.05);
   border: 1px solid var(--border);
   border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.lk-card-favicon { padding: 0; }
+.lk-favicon {
+  width: 24px; height: 24px;
+  object-fit: contain; display: block;
+  border-radius: 3px;
+}
+.lk-favicon-fallback {
+  font-size: 18px;
   display: flex; align-items: center; justify-content: center;
 }
 .lk-card-body { flex: 1; min-width: 0; }

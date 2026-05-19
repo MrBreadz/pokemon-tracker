@@ -65,7 +65,7 @@ function buildGalleryHTML() {
         <button class="pv-filter ${galleryFilter==='all'?'active':''}" onclick="setGalleryFilter('all')">Tout</button>
         <button class="pv-filter ${galleryFilter==='graded'?'active':''}" onclick="setGalleryFilter('graded')">🏆 Gradées</button>
         <button class="pv-filter ${galleryFilter==='sealed'?'active':''}" onclick="setGalleryFilter('sealed')">📦 Scellés</button>
-        <button class="pv-filter ${galleryFilter==='favs'?'active':''}" onclick="setGalleryFilter('favs')">⭐ Mes préférés</button>
+
       </div>
       <div class="pv-actions">
         <div class="pv-mode-toggle">
@@ -139,9 +139,7 @@ function buildHero(item, allItems) {
         <div class="pv-hero-meta">
           <span class="pv-tag">${item.cat==='graded'?'🏆 Gradée':item.cat==='sealed'?'📦 Scellé':'💎 Rare'}</span>
           ${item.prix ? `<span class="pv-tag pv-tag-gold">${formatPrice(item.prix)}</span>` : ''}
-          ${isFav ? '<span class="pv-tag" style="color:#E8B422">⭐ Préféré</span>' : ''}
         </div>
-        <button onclick="toggleFav('${item.id}')" style="padding:8px 18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:${isFav?'#E8B422':'rgba(255,255,255,0.5)'};border-radius:8px;cursor:pointer;font-size:14px;font-family:var(--font-body);transition:all 0.2s">⭐ ${isFav?'Dans mes préférés':'Ajouter aux préférés'}</button>
       </div>
     </div>
 

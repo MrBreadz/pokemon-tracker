@@ -844,18 +844,20 @@ td {
 .pv-header {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: none;
   flex-wrap: wrap;
-  position: relative; z-index: 5;
-  background: rgba(6,6,14,0.75);
-  backdrop-filter: blur(14px);
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  background: linear-gradient(180deg, rgba(6,6,14,0.7) 0%, transparent 100%);
+  backdrop-filter: none;
 }
 .pv-search-wrap { position: relative; flex:1; min-width:160px; }
 .pv-search {
   width: 100%;
   padding: 9px 12px 9px 34px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 10px;
   color: #fff; font-size: 13px; outline: none;
   font-family: var(--font-body);

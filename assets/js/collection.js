@@ -159,8 +159,14 @@ function getFilteredSealed() {
   return data;
 }
 
-function renderSealedTable() {
+
+function renderSealedCurrent() {
   renderSealedStats();
+  if (sealedView === 'table') renderSealedTable();
+  else renderSealedGrid();
+}
+
+function renderSealedTable() {
   const tbody = document.getElementById('sealed-tbody');
   if (!tbody) return;
   const data = getFilteredSealed();
@@ -376,23 +382,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('search-sealed')?.addEventListener('input', e => {
     sealedFilters.search = e.target.value;
-    renderSealedTable();
+    renderSealedCurrent();
   });
 
   document.getElementById('filter-sealed-type')?.addEventListener('change', e => {
     sealedFilters.type = e.target.value;
-    renderSealedTable();
+    renderSealedCurrent();
   });
 
   document.getElementById('filter-sealed-lang')?.addEventListener('change', e => {
     sealedFilters.langue = e.target.value;
-    renderSealedTable();
+    renderSealedCurrent();
   });
 
   // Tri par colonne
   document.querySelectorAll('[data-sort-sealed]').forEach(th => {
     th.addEventListener('click', () => {
-      handleSort(th.dataset.sortSealed, sealedSort, renderSealedTable);
+      handleSort(th.dataset.sortSealed, sealedSort, renderSealedCurrent);
     });
   });
 

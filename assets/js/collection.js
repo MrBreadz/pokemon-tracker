@@ -141,7 +141,8 @@ function renderSealedStats() {
   setEl('sealed-val-marche', valMarche
     ? formatPrice(valMarche) + (evoPct !== null ? '<div style="font-size:11px;font-weight:600;color:' + evoColor + ';margin-top:2px">' + evoSign + evoPct + '% vs achat</div>' : '')
     : '—');
-  setEl('sealed-avg-pl', avgPL !== null
+  const avgPLPctVal = avgBase ? ((avgPL / avgBase) * 100).toFixed(1) : null;
+  setEl('sealed-avg-pl', avgPL !== null && avgPLPctVal !== null
     ? '<span style="color:' + (avgPL >= 0 ? 'var(--positive)' : 'var(--negative)') + '">' +
       (avgPL >= 0 ? '+' : '') + avgPLPctVal + '%' +
       '<span style="font-size:11px;opacity:0.7;margin-left:4px">(' + (avgPL >= 0 ? '+' : '') + formatPrice(avgPL) + ')</span></span>'

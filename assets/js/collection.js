@@ -108,29 +108,39 @@ function initSealedFAB() {
 }
 
 function renderSealedStats() {
-  const total = APP.data.sealed.reduce((s,i) => s + i.stock, 0);
-  const valAchat = getTotalSealedValue('achat');
-  const hasMarche = APP.data.sealed.some(i => i.prixMarche);
-  const valMarche = hasMarche ? getTotalSealedValue('marche') : null;
-  const evoPct = hasMarche && valAchat > 0 ? ((valMarche - valAchat) / valAchat * 100).toFixed(1) : null;
-  const evoSign = evoPct > 0 ? '+' : '';
+  // Utiliser les données filtrées pour que les stats soient dynamiques
+  const filtered = getFilteredSealed();
+  const isFiltered = sealedFilters.type || sealedFilters.langue || sealedFilters.search;
+
+  const total    = filtered.reduce((s,i) => s + i.stock, 0);
+  const valAchat = filtered.reduce((s,i) => s + i.prixAchat * i.stock, 0);
+  const hasMarche= filtered.some(i => i.prixMarche);
+  const valMarche= hasMarche ? filtered.reduce((s,i) => s + (i.prixMarche||i.prixAchat) * i.stock, 0) : null;
+  const evoPct   = hasMarche && valAchat > 0 ? ((valMarche - valAchat) / valAchat * 100).toFixed(1) : null;
+  const evoSign  = evoPct > 0 ? '+' : '';
   const evoColor = evoPct > 0 ? 'var(--positive)' : evoPct < 0 ? 'var(--negative)' : 'var(--text-3)';
-  const itemsWithPL = APP.data.sealed.filter(i => i.prixMarche);
+
+  const itemsWithPL = filtered.filter(i => i.prixMarche);
   const avgPL = itemsWithPL.length > 0
     ? itemsWithPL.reduce((s,i) => s + ((i.prixMarche - i.prixAchat) * i.stock), 0) / itemsWithPL.length
     : null;
+  const avgBase   = itemsWithPL.length > 0
+    ? itemsWithPL.reduce((s,i) => s + i.prixAchat, 0) / itemsWithPL.length
+    : null;
+  const avgPLPct  = avgBase ? ((avgPL / avgBase) * 100).toFixed(1) : null;
 
   const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
-  setEl('sealed-count', total);
-  setEl('sealed-val-achat', formatPrice(valAchat));
+
+  // Indicateur filtre actif
+  const filterBadge = isFiltered
+    ? '<span style="font-size:9px;background:rgba(239,35,60,0.15);border:1px solid rgba(239,35,60,0.25);color:#ef233c;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle;font-weight:600">Filtré</span>'
+    : '';
+
+  setEl('sealed-count', total + filterBadge);
+  setEl('sealed-val-achat', formatPrice(valAchat) + filterBadge);
   setEl('sealed-val-marche', valMarche
     ? formatPrice(valMarche) + (evoPct !== null ? '<div style="font-size:11px;font-weight:600;color:' + evoColor + ';margin-top:2px">' + evoSign + evoPct + '% vs achat</div>' : '')
     : '—');
-  // P&L moyen en % avec euros entre parenthèses
-  const avgPLPct = avgPL !== null && itemsWithPL.length > 0
-    ? (itemsWithPL.reduce((s,i) => s + i.prixAchat, 0) / itemsWithPL.length)
-    : null;
-  const avgPLPctVal = avgPLPct ? ((avgPL / avgPLPct) * 100).toFixed(1) : null;
   setEl('sealed-avg-pl', avgPL !== null
     ? '<span style="color:' + (avgPL >= 0 ? 'var(--positive)' : 'var(--negative)') + '">' +
       (avgPL >= 0 ? '+' : '') + avgPLPctVal + '%' +
@@ -149,6 +159,7 @@ function getFilteredSealed() {
 }
 
 function renderSealedTable() {
+  renderSealedStats();
   const tbody = document.getElementById('sealed-tbody');
   if (!tbody) return;
   const data = getFilteredSealed();

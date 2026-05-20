@@ -75,41 +75,120 @@ function renderEvolutionChart() {
   if (!ctx) return;
   const c = getChartColors();
 
-  // Données d'achat réelles (points clés fournis manuellement + valeur actuelle)
-  const currentVal = getTotalValue('achat');
-  const fixedAchat = [
-    { label: 'janv. 24', val: 0 },
-    { label: 'juin 24',  val: 240 },
-    { label: 'nov. 24',  val: 500 },
-    { label: 'mars 25',  val: 1500 },
-    { label: 'juin 25',  val: 3000 },
-    { label: 'déc. 25',  val: 4500 },
-    { label: 'avr. 26',  val: Math.round(currentVal) },
-  ];
+  // ===== COURBE AUTOMATIQUE BASÉE SUR dateAjout =====
+  // Regrouper tous les achats par trimestre
+  const allItems = [
+    ...APP.data.sealed.map(i => ({
+      date: i.dateAjout,
+      val: (i.prixAchat || 0) * (i.stock || 1),
+      marche: i.prixMarche ? i.prixMarche * (i.stock || 1) : null
+    })),
+    ...APP.data.graded.map(i => ({
+      date: i.dateAjout,
+      val: i.prixAchat || 0,
+      marche: i.prixMarche || null
+    }))
+  ].filter(i => i.date && i.val > 0);
 
-  // Courbe marché estimée : légèrement supérieure avec une appréciation progressive
-  // Hypothèse : les items prennent en moyenne 15-25% de valeur avec le temps
-  const marcheMult = [1, 1.05, 1.08, 1.12, 1.18, 1.22, 1.25];
-  const fixedMarche = fixedAchat.map((p, i) => ({
-    label: p.label,
-    val: Math.round(p.val * marcheMult[i])
-  }));
+  // Trouver la plage de dates
+  const now = new Date();
+  let minDate = new Date(now);
+  allItems.forEach(i => {
+    const d = new Date(i.date);
+    if (d < minDate) minDate = d;
+  });
 
-  // Si on a des vraies données marché, on les utilise pour le dernier point
-  const realMarche = getTotalValue('marche');
-  const hasRealMarche = APP.data.sealed.some(i=>i.prixMarche) || APP.data.graded.some(i=>i.prixMarche);
-  if (hasRealMarche && realMarche > 0) {
-    fixedMarche[fixedMarche.length - 1].val = Math.round(realMarche);
+  // Générer les trimestres de minDate à aujourd'hui
+  function getQuarterKey(date) {
+    const y = date.getFullYear();
+    const q = Math.floor(date.getMonth() / 3);
+    return `${y}-Q${q}`;
   }
+  function getQuarterLabel(y, q) {
+    const months = ['janv.', 'avr.', 'juil.', 'oct.'];
+    return `${months[q]} ${String(y).slice(2)}`;
+  }
+
+  // Générer tous les trimestres entre min et maintenant
+  const quarters = [];
+  const startY = minDate.getFullYear();
+  const startQ = Math.floor(minDate.getMonth() / 3);
+  const endY   = now.getFullYear();
+  const endQ   = Math.floor(now.getMonth() / 3);
+
+  for (let y = startY; y <= endY; y++) {
+    const qStart = y === startY ? startQ : 0;
+    const qEnd   = y === endY   ? endQ   : 3;
+    for (let q = qStart; q <= qEnd; q++) {
+      quarters.push({ key: `${y}-Q${q}`, label: getQuarterLabel(y, q), y, q });
+    }
+  }
+
+  // Cumuler les achats par trimestre
+  const byQuarter = {};
+  quarters.forEach(q => { byQuarter[q.key] = { achat: 0, marcheSum: 0, marcheCount: 0 }; });
+
+  allItems.forEach(item => {
+    const d   = new Date(item.date);
+    const key = getQuarterKey(d);
+    if (byQuarter[key] !== undefined) {
+      byQuarter[key].achat += item.val;
+      if (item.marche) {
+        byQuarter[key].marcheSum   += item.marche;
+        byQuarter[key].marcheCount += 1;
+      }
+    }
+  });
+
+  // Cumul progressif
+  let cumulAchat  = 0;
+  let cumulMarche = 0;
+  let lastKnownMarche = 0;
+  const pointsAchat  = [];
+  const pointsMarche = [];
+
+  quarters.forEach(q => {
+    const data = byQuarter[q.key];
+    cumulAchat += data.achat;
+    // Marché : utiliser les vraies données si dispo, sinon estimer +8% sur l'achat cumulé
+    if (data.marcheCount > 0) {
+      cumulMarche = cumulAchat * 1.0; // base
+      lastKnownMarche = data.marcheSum;
+    }
+    pointsAchat.push(Math.round(cumulAchat));
+  });
+
+  // Courbe marché : valeur marché réelle au dernier point, interpolation avant
+  const realMarche    = getTotalValue('marche');
+  const hasRealMarche = APP.data.sealed.some(i=>i.prixMarche) || APP.data.graded.some(i=>i.prixMarche);
+  const totalAchat    = getTotalValue('achat');
+
+  // Ratio marché/achat actuel pour interpoler les points passés
+  const marcheRatio = hasRealMarche && totalAchat > 0 ? realMarche / totalAchat : 1.08;
+
+  quarters.forEach((q, i) => {
+    const achatVal = pointsAchat[i];
+    if (i === quarters.length - 1 && hasRealMarche) {
+      // Dernier point = vraie valeur marché
+      pointsMarche.push(Math.round(realMarche));
+    } else {
+      // Points passés : on applique un ratio progressif (commence à 1x, monte vers marcheRatio)
+      const progress = quarters.length > 1 ? i / (quarters.length - 1) : 1;
+      const ratio    = 1 + (marcheRatio - 1) * progress;
+      pointsMarche.push(Math.round(achatVal * ratio));
+    }
+  });
+
+  const labels = quarters.map(q => q.label);
 
   dashCharts.evolution = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: fixedAchat.map(p => p.label),
+      labels: labels,
       datasets: [
         {
           label: 'Valeur investie',
-          data: fixedAchat.map(p => p.val),
+          data: pointsAchat,
           borderColor: '#EF233C',
           backgroundColor: 'rgba(239,35,60,0.07)',
           borderWidth: 2.5,
@@ -122,7 +201,7 @@ function renderEvolutionChart() {
         },
         {
           label: 'Valeur marché estimée',
-          data: fixedMarche.map(p => p.val),
+          data: pointsMarche,
           borderColor: '#2B2D42',
           backgroundColor: 'rgba(43,45,66,0.05)',
           borderWidth: 2,

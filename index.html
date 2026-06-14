@@ -83,6 +83,8 @@
         <div class="stat-card"><div class="stat-icon"><svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M7.5 1.5l2 4.2h4.5L10.5 8.8l1.5 4.2L7.5 10.5l-4.5 2.5 1.5-4.2L1 5.7h4.5z"/></svg></div><div class="stat-value" id="dash-graded">—</div><div class="stat-label">Cartes gradées</div></div>
         <div class="stat-card"><div class="stat-icon accent"><svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="#EF233C" stroke-width="1.3" stroke-linecap="round"><path d="M3 11.5V8M6 11.5V5.5M9 11.5V3.5M12 11.5V7"/></svg></div><div class="stat-value" id="dash-plusvalue">—</div><div class="stat-label">Plus-value latente</div></div>
       </div>
+      <!-- KPIs Investissement/revente — juste sous les 5 stats -->
+      <div id="dash-invest-kpi" style="display:none"></div>
       <div class="charts-grid">
         <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Évolution valeur investie</div><div class="chart-subtitle">Cumul achats dans le temps</div></div></div><div style="height:200px"><canvas id="chart-evolution"></canvas></div></div>
         <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Valeur par langue</div><div class="chart-subtitle">Scellés + Gradées</div></div></div><div style="height:220px"><canvas id="chart-lang"></canvas></div></div>
@@ -93,7 +95,6 @@
         <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Top 8 items les plus chers</div><div class="chart-subtitle"><span style="color:#D90429">●</span> Gradée &nbsp;<span style="color:#8D99AE">●</span> Scellé</div></div></div><div id="chart-topval-list" style="margin-top:4px"></div></div>
       </div>
       <div class="card"><div class="card-title">Derniers ajouts</div><div id="recent-list"></div></div>
-      <div id="invest-section" style="display:none;padding:0 0 16px"></div>
     </div>
     <!-- SCELLÉS -->
     <div class="page-section page-content" id="page-sealed" style="display:none">

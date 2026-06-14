@@ -357,7 +357,7 @@ function renderInvestSection() {
 
   el.style.display = 'block';
   el.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
 
       <div class="stat-card" style="border-color:rgba(255,184,0,0.2);background:rgba(255,184,0,0.04)">
         <div class="stat-icon">🏷️</div>
@@ -373,11 +373,11 @@ function renderInvestSection() {
         <div style="font-size:10px;color:var(--text-3);margin-top:2px">Capital : ${formatPrice(valAchat)}</div>
       </div>
 
-      <div class="stat-card" style="border-color:${profitPct ? 'rgba(255,184,0,0.2)' : 'var(--border)'};background:${profitPct ? 'rgba(255,184,0,0.06)' : 'var(--glass-bg)'}">
+      <div class="stat-card" style="border-color:${profitBrut !== null ? 'rgba(255,184,0,0.2)' : 'var(--border)'};background:${profitBrut !== null ? 'rgba(255,184,0,0.06)' : 'var(--glass-bg)'}">
         <div class="stat-icon">💹</div>
-        <div class="stat-value" style="font-size:26px;color:${col}">${profitPct !== null ? sign+profitPct+'%' : '—'}</div>
-        <div class="stat-label">% Bénéfice potentiel</div>
-        <div style="font-size:10px;color:${col};margin-top:2px;font-weight:600">${profitBrut !== null ? sign+formatPrice(profitBrut) : 'Prix marché manquants'}</div>
+        <div class="stat-value" style="font-size:26px;color:${col}">${profitBrut !== null ? sign+formatPrice(profitBrut) : '—'}</div>
+        <div class="stat-label">Bénéfice potentiel</div>
+        <div style="font-size:10px;color:${col};margin-top:2px;font-weight:600">${profitPct !== null ? sign+profitPct+'%' : 'Prix marché manquants'}</div>
       </div>
 
     </div>

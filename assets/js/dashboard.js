@@ -67,6 +67,7 @@ function renderDashboardCharts() {
   renderGradeurChart();
   renderValeurTypeChart();
   renderTopValueChart();
+  renderInvestSection();
 }
 
 function renderEvolutionChart() {

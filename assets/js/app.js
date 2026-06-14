@@ -87,6 +87,17 @@ function sortTable(data, key, dir) {
   });
 }
 
+// Gestion générique du tri par colonne
+function handleSort(key, sortObj, renderFn) {
+  if (sortObj.key === key) {
+    sortObj.dir = sortObj.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortObj.key = key;
+    sortObj.dir = 'asc';
+  }
+  renderFn();
+}
+
 // ===== IMAGE COMPRESSION (évite QuotaExceededError) =====
 function compressImage(file, maxWidth=800, quality=0.7) {
   return new Promise((resolve) => {

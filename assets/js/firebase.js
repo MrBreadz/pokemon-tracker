@@ -63,7 +63,7 @@ window.firebaseSave = function() {
       console.error('Firebase save error:', e);
       setSyncStatus('offline');
     }
-  }, 800);
+  }, 600); // réduit de 800 → 600ms
 };
 
 // Chargement depuis Firebase
@@ -91,7 +91,8 @@ async function loadFromFirebase() {
         setSyncStatus('synced');
         renderPage(APP.currentPage);
         updateNavBadges();
-        showToast('Collection chargée ☁️', 'success');
+        // Toast discret uniquement si données réelles trouvées
+        console.log('[Firebase] Collection chargée depuis le cloud');
       } else {
         // Firebase vide ou corrompu → pousser les données locales
         await window.firebaseSave();

@@ -246,7 +246,7 @@
             <label class="form-label">Quantité à vendre (sur mon stock)</label>
             <div style="display:flex;align-items:center;gap:10px">
               <button type="button" onclick="adjustQteRevente(-1)" style="width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--bg-2);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font-body);flex-shrink:0">−</button>
-              <input class="form-input" id="sealed-qte-revente" type="number" min="0" value="0" style="text-align:center;font-size:16px;font-weight:700;max-width:80px">
+              <input class="form-input" id="sealed-qte-revente" type="text" inputmode="numeric" pattern="[0-9]*" min="0" value="0" style="text-align:center;font-size:16px;font-weight:700;max-width:80px;-moz-appearance:textfield">
               <button type="button" onclick="adjustQteRevente(1)" style="width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--bg-2);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font-body);flex-shrink:0">＋</button>
             </div>
           </div>

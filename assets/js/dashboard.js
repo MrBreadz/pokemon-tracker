@@ -3,8 +3,9 @@ let dashCharts = {};
 
 function renderDashboard() {
   renderDashboardStats();
-  setTimeout(renderDashboardCharts, 50); // légère attente pour que le canvas soit dans le DOM
+  setTimeout(renderDashboardCharts, 50);
   renderRecentActivity();
+  renderInvestSection();
 }
 
 function renderDashboardStats() {
@@ -67,7 +68,6 @@ function renderDashboardCharts() {
   renderGradeurChart();
   renderValeurTypeChart();
   renderTopValueChart();
-  renderInvestSection();
 }
 
 function renderEvolutionChart() {

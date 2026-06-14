@@ -147,6 +147,83 @@ function renderSealedStats() {
       (avgPL >= 0 ? '+' : '') + avgPLPctVal + '%' +
       '<span style="font-size:11px;opacity:0.7;margin-left:4px">(' + (avgPL >= 0 ? '+' : '') + formatPrice(avgPL) + ')</span></span>' + filterBadge
     : '—');
+
+  // KPIs investissement/revente
+  renderSealedInvestKpi();
+}
+
+function renderSealedInvestKpi() {
+  const el = document.getElementById('sealed-invest-kpi');
+  if (!el) return;
+
+  // Toujours calculer sur l'ensemble (pas filtré) pour refléter la vraie position revente
+  const investItems = APP.data.sealed.filter(i => i.invest && i.qteRevente > 0);
+
+  if (investItems.length === 0) {
+    el.style.display = 'none';
+    return;
+  }
+
+  const totalQte  = investItems.reduce((s,i) => s + i.qteRevente, 0);
+  const hasMarche = investItems.some(i => i.prixMarche);
+  const valMarche = hasMarche
+    ? investItems.reduce((s,i) => s + (i.prixMarche || i.prixAchat) * i.qteRevente, 0)
+    : null;
+  const valAchatInvest = investItems.reduce((s,i) => s + i.prixAchat * i.qteRevente, 0);
+  const profitBrut = valMarche !== null ? valMarche - valAchatInvest : null;
+  const profitPct  = profitBrut !== null && valAchatInvest > 0
+    ? ((profitBrut / valAchatInvest) * 100).toFixed(1)
+    : null;
+  const sign = profitBrut !== null && profitBrut >= 0 ? '+' : '';
+  const col  = profitBrut !== null
+    ? (profitBrut >= 0 ? 'var(--positive)' : 'var(--negative)')
+    : '#ffb800';
+
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="
+      background:rgba(255,184,0,0.04);
+      border:1px solid rgba(255,184,0,0.18);
+      border-radius:14px;
+      padding:14px 16px;
+      margin-bottom:2px;
+    ">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:13px">💰</span>
+        <span style="font-size:11px;font-weight:700;color:rgba(255,184,0,0.9);text-transform:uppercase;letter-spacing:0.6px">
+          Portefeuille revente
+        </span>
+        <span style="font-size:10px;color:var(--text-3);margin-left:2px">
+          · ${investItems.length} référence${investItems.length > 1 ? 's' : ''}
+        </span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+
+        <div style="background:var(--glass-bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">Items à vendre</div>
+          <div style="font-size:22px;font-weight:700;line-height:1;color:var(--text)">${totalQte}</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:3px">${investItems.length} référence${investItems.length > 1 ? 's' : ''}</div>
+        </div>
+
+        <div style="background:var(--glass-bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">Valeur marché</div>
+          <div style="font-size:22px;font-weight:700;line-height:1;color:var(--text)">${valMarche !== null ? formatPrice(valMarche) : '—'}</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:3px">vs ${formatPrice(valAchatInvest)} investi</div>
+        </div>
+
+        <div style="background:${profitPct !== null ? 'rgba(255,184,0,0.06)' : 'var(--glass-bg)'};border:1px solid ${profitPct !== null ? 'rgba(255,184,0,0.2)' : 'var(--border)'};border-radius:10px;padding:12px 14px">
+          <div style="font-size:9px;color:${profitPct !== null ? 'rgba(255,184,0,0.8)' : 'var(--text-3)'};text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">% Bénéfice</div>
+          <div style="font-size:22px;font-weight:700;line-height:1;color:${col}">
+            ${profitPct !== null ? sign + profitPct + '%' : '—'}
+          </div>
+          <div style="font-size:10px;color:${col};margin-top:3px;font-weight:600">
+            ${profitBrut !== null ? sign + formatPrice(profitBrut) : 'Prix marché manquants'}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
 }
 
 // Cache filtrage pour éviter double calcul

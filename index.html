@@ -95,6 +95,7 @@
       <div class="card"><div class="card-title">Derniers ajouts</div><div id="recent-list"></div></div>
     </div>
 
+    <div id="invest-section" style="display:none;padding:0 0 16px"></div>
     <!-- SCELLÉS -->
     <div class="page-section page-content" id="page-sealed" style="display:none">
       <div class="section-header">
@@ -235,6 +236,18 @@
       </div>
       <div class="form-group"><label class="form-label">Quantité</label><input type="number" class="form-input" id="sealed-stock" min="0" value="1"></div>
       <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="sealed-notes" placeholder="Notes..."></textarea></div>
+      <div style="border:1px solid rgba(255,184,0,0.2);border-radius:10px;padding:14px;background:rgba(255,184,0,0.04);margin-bottom:4px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <input type="checkbox" id="sealed-invest" style="width:16px;height:16px;accent-color:#ffb800;cursor:pointer" onchange="toggleInvestFields()">
+          <label for="sealed-invest" style="font-size:13px;font-weight:600;cursor:pointer">💰 Marquer pour revente / investissement</label>
+        </div>
+        <div id="invest-fields-wrap" style="display:none">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Quantité à vendre (sur mon stock)</label>
+            <input class="form-input" id="sealed-qte-revente" type="number" min="0" placeholder="Ex: 2">
+          </div>
+        </div>
+      </div>
       <div class="form-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button><button type="button" class="btn btn-primary" id="btn-save-sealed">💾 Enregistrer</button></div>
     </form>
   </div>

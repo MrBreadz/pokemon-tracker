@@ -186,7 +186,7 @@ function renderSealedInvestKpi() {
       border:1px solid rgba(255,184,0,0.18);
       border-radius:14px;
       padding:14px 16px;
-      margin-bottom:2px;
+      margin-bottom:20px;
     ">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
         <span style="font-size:13px">💰</span>
@@ -211,13 +211,14 @@ function renderSealedInvestKpi() {
           <div style="font-size:10px;color:var(--text-3);margin-top:3px">vs ${formatPrice(valAchatInvest)} investi</div>
         </div>
 
-        <div style="background:${profitPct !== null ? 'rgba(255,184,0,0.06)' : 'var(--glass-bg)'};border:1px solid ${profitPct !== null ? 'rgba(255,184,0,0.2)' : 'var(--border)'};border-radius:10px;padding:12px 14px">
-          <div style="font-size:9px;color:${profitPct !== null ? 'rgba(255,184,0,0.8)' : 'var(--text-3)'};text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">% Bénéfice</div>
+        <div style="background:${profitBrut !== null ? 'rgba(255,184,0,0.06)' : 'var(--glass-bg)'};border:1px solid ${profitBrut !== null ? 'rgba(255,184,0,0.2)' : 'var(--border)'};border-radius:10px;padding:12px 14px">
+          <div style="font-size:9px;color:${profitBrut !== null ? 'rgba(255,184,0,0.8)' : 'var(--text-3)'};text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">Bénéfice potentiel</div>
           <div style="font-size:22px;font-weight:700;line-height:1;color:${col}">
-            ${profitPct !== null ? sign + profitPct + '%' : '—'}
+            ${profitBrut !== null ? sign + formatPrice(profitBrut) : '—'}
           </div>
           <div style="font-size:10px;color:${col};margin-top:3px;font-weight:600">
-            ${profitBrut !== null ? sign + formatPrice(profitBrut) : 'Prix marché manquants'}
+            ${profitPct !== null ? sign + profitPct + '%' : 'Prix marché manquants'}
+          </div>
           </div>
         </div>
 

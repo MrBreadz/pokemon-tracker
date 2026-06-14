@@ -341,35 +341,23 @@ function renderTopValueChart() {
 
 
 function renderInvestSection() {
-  const el = document.getElementById('invest-section');
+  const el = document.getElementById('dash-invest-kpi');
   if (!el) return;
   const investItems = APP.data.sealed.filter(i => i.invest && i.qteRevente > 0);
   if (investItems.length === 0) { el.style.display = 'none'; return; }
-  el.style.display = 'block';
-  el.style.marginTop = '16px';
 
   const totalQte   = investItems.reduce((s,i) => s + i.qteRevente, 0);
   const valAchat   = investItems.reduce((s,i) => s + i.prixAchat * i.qteRevente, 0);
   const hasMarche  = investItems.some(i => i.prixMarche);
   const valMarche  = hasMarche ? investItems.reduce((s,i) => s + (i.prixMarche||i.prixAchat) * i.qteRevente, 0) : null;
-  const profitBrut = valMarche ? valMarche - valAchat : null;
+  const profitBrut = valMarche !== null ? valMarche - valAchat : null;
   const profitPct  = profitBrut !== null && valAchat > 0 ? ((profitBrut/valAchat)*100).toFixed(1) : null;
-  const sign       = profitBrut >= 0 ? '+' : '';
-  const col        = profitBrut >= 0 ? 'var(--positive)' : 'var(--negative)';
+  const sign       = profitBrut !== null && profitBrut >= 0 ? '+' : '';
+  const col        = profitBrut !== null ? (profitBrut >= 0 ? 'var(--positive)' : 'var(--negative)') : '#ffb800';
 
-  const topItems = [...investItems]
-    .filter(i => i.prixMarche)
-    .map(i => ({
-      nom:    i.nom,
-      profit: (i.prixMarche - i.prixAchat) * i.qteRevente,
-      pct:    ((i.prixMarche - i.prixAchat) / i.prixAchat * 100).toFixed(1),
-      marche: i.prixMarche * i.qteRevente,
-      qte:    i.qteRevente
-    }))
-    .sort((a,b) => b.profit - a.profit).slice(0,5);
-
+  el.style.display = 'block';
   el.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
 
       <div class="stat-card" style="border-color:rgba(255,184,0,0.2);background:rgba(255,184,0,0.04)">
         <div class="stat-icon">🏷️</div>
@@ -386,52 +374,12 @@ function renderInvestSection() {
       </div>
 
       <div class="stat-card" style="border-color:${profitPct ? 'rgba(255,184,0,0.2)' : 'var(--border)'};background:${profitPct ? 'rgba(255,184,0,0.06)' : 'var(--glass-bg)'}">
-        <div class="stat-icon" style="${profitPct ? 'color:#ffb800' : ''}">💹</div>
+        <div class="stat-icon">💹</div>
         <div class="stat-value" style="font-size:26px;color:${col}">${profitPct !== null ? sign+profitPct+'%' : '—'}</div>
         <div class="stat-label">% Bénéfice potentiel</div>
         <div style="font-size:10px;color:${col};margin-top:2px;font-weight:600">${profitBrut !== null ? sign+formatPrice(profitBrut) : 'Prix marché manquants'}</div>
       </div>
 
-    </div>
-    <div class="chart-card">
-      <div class="chart-header" style="margin-bottom:14px">
-        <div>
-          <div class="chart-title">💰 Portefeuille Investissement</div>
-          <div class="chart-subtitle">${investItems.length} référence${investItems.length>1?'s':''} · ${totalQte} item${totalQte>1?'s':''} à vendre</div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
-        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px">
-          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Items à vendre</div>
-          <div style="font-size:20px;font-weight:700">${totalQte}</div>
-        </div>
-        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px">
-          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Capital investi</div>
-          <div style="font-size:20px;font-weight:700">${formatPrice(valAchat)}</div>
-        </div>
-        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px">
-          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Valeur marché</div>
-          <div style="font-size:20px;font-weight:700">${valMarche ? formatPrice(valMarche) : '—'}</div>
-        </div>
-        <div style="background:rgba(255,184,0,0.06);border:1px solid rgba(255,184,0,0.2);border-radius:10px;padding:12px">
-          <div style="font-size:9px;color:rgba(255,184,0,0.8);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Profit potentiel</div>
-          <div style="font-size:20px;font-weight:700;color:${col}">${profitBrut !== null ? sign+formatPrice(profitBrut) : '—'}</div>
-          ${profitPct ? `<div style="font-size:11px;font-weight:600;color:${col}">${sign}${profitPct}%</div>` : ''}
-        </div>
-      </div>
-      ${topItems.length > 0 ? `
-        <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Meilleurs retours</div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          ${topItems.map((item,i) => `
-            <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:var(--bg-2);border:1px solid var(--border)">
-              <div style="width:18px;height:18px;border-radius:50%;background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#ffb800;flex-shrink:0">${i+1}</div>
-              <div style="flex:1;font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.nom} <span style="color:var(--text-3)">×${item.qte}</span></div>
-              <div style="font-size:11px;font-weight:700;color:var(--positive);flex-shrink:0">+${item.pct}%</div>
-              <div style="font-size:11px;color:var(--text-2);flex-shrink:0">${formatPrice(item.marche)}</div>
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
     </div>
   `;
 }

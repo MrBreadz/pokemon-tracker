@@ -369,6 +369,30 @@ function renderInvestSection() {
     .sort((a,b) => b.profit - a.profit).slice(0,5);
 
   el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+
+      <div class="stat-card" style="border-color:rgba(255,184,0,0.2);background:rgba(255,184,0,0.04)">
+        <div class="stat-icon">🏷️</div>
+        <div class="stat-value" style="font-size:26px">${totalQte}</div>
+        <div class="stat-label">Items à vendre</div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:2px">${investItems.length} référence${investItems.length>1?'s':''}</div>
+      </div>
+
+      <div class="stat-card" style="border-color:rgba(255,184,0,0.2);background:rgba(255,184,0,0.04)">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value" style="font-size:26px">${valMarche ? formatPrice(valMarche) : '—'}</div>
+        <div class="stat-label">Valeur marché revente</div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:2px">Capital : ${formatPrice(valAchat)}</div>
+      </div>
+
+      <div class="stat-card" style="border-color:${profitPct ? 'rgba(255,184,0,0.2)' : 'var(--border)'};background:${profitPct ? 'rgba(255,184,0,0.06)' : 'var(--glass-bg)'}">
+        <div class="stat-icon" style="${profitPct ? 'color:#ffb800' : ''}">💹</div>
+        <div class="stat-value" style="font-size:26px;color:${col}">${profitPct !== null ? sign+profitPct+'%' : '—'}</div>
+        <div class="stat-label">% Bénéfice potentiel</div>
+        <div style="font-size:10px;color:${col};margin-top:2px;font-weight:600">${profitBrut !== null ? sign+formatPrice(profitBrut) : 'Prix marché manquants'}</div>
+      </div>
+
+    </div>
     <div class="chart-card">
       <div class="chart-header" style="margin-bottom:14px">
         <div>

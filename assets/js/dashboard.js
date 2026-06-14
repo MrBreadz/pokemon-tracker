@@ -3,9 +3,10 @@ let dashCharts = {};
 
 function renderDashboard() {
   renderDashboardStats();
-  setTimeout(renderDashboardCharts, 50);
   renderRecentActivity();
   renderInvestSection();
+  // Charts dans un rAF pour ne pas bloquer le paint
+  requestAnimationFrame(() => renderDashboardCharts());
 }
 
 function renderDashboardStats() {
@@ -345,6 +346,7 @@ function renderInvestSection() {
   const investItems = APP.data.sealed.filter(i => i.invest && i.qteRevente > 0);
   if (investItems.length === 0) { el.style.display = 'none'; return; }
   el.style.display = 'block';
+  el.style.marginTop = '16px';
 
   const totalQte   = investItems.reduce((s,i) => s + i.qteRevente, 0);
   const valAchat   = investItems.reduce((s,i) => s + i.prixAchat * i.qteRevente, 0);

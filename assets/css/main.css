@@ -203,14 +203,19 @@ body {
   margin-left: auto; width: 30px; height: 16px;
   border-radius: 8px;
   background: linear-gradient(90deg, var(--navy), var(--red));
-  position: relative; transition: background var(--transition);
+  position: relative;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
 }
 .toggle-pill::after {
   content: ''; width: 12px; height: 12px;
   background: #fff; border-radius: 50%;
-  position: absolute; top: 2px; right: 2px;
+  position: absolute; top: 2px; left: 2px;
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
 }
-[data-theme="dark"] .toggle-pill::after { right: 2px; }
+[data-theme="dark"] .toggle-pill::after {
+  transform: translateX(14px);
+}
 
 .main-content {
   margin-left: 220px; flex: 1;
@@ -1908,4 +1913,11 @@ td {
   background: rgba(239,35,60,0.22);
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(239,35,60,0.2);
+}
+
+/* Filtre investissement actif */
+#filter-invest-toggle.active {
+  background: rgba(255,184,0,0.12);
+  border-color: rgba(255,184,0,0.35) !important;
+  color: #ffb800 !important;
 }

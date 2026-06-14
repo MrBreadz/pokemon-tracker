@@ -149,7 +149,13 @@ function renderSealedStats() {
     : '—');
 }
 
+// Cache filtrage pour éviter double calcul
+let _sealedCache = null;
+let _sealedCacheKey = '';
+
 function getFilteredSealed() {
+  const key = JSON.stringify(sealedFilters) + sealedSort.key + sealedSort.dir + APP.data.sealed.length;
+  if (_sealedCache && _sealedCacheKey === key) return _sealedCache;
   let data = [...APP.data.sealed];
   const { search, type, langue, invest } = sealedFilters;
   if (search) data = data.filter(i => i.nom.toLowerCase().includes(search.toLowerCase()));
@@ -157,11 +163,19 @@ function getFilteredSealed() {
   if (type) data = data.filter(i => i.type === type);
   if (langue) data = data.filter(i => i.langue === langue);
   if (sealedSort.key) data = sortTable(data, sealedSort.key, sealedSort.dir);
+  _sealedCache = data;
+  _sealedCacheKey = key;
   return data;
+}
+
+function invalidateSealedCache() {
+  _sealedCache = null;
+  _sealedCacheKey = '';
 }
 
 
 function renderSealedCurrent() {
+  invalidateSealedCache();
   renderSealedStats();
   if (sealedView === 'table') renderSealedTable();
   else renderSealedGrid();
@@ -263,6 +277,7 @@ function changeStock(id, delta) {
   const item = APP.data.sealed.find(i => i.id === id);
   if (!item) return;
   item.stock = Math.max(0, item.stock + delta);
+  invalidateSealedCache();
   saveData();
   renderSealed();
   updateNavBadges();
@@ -354,12 +369,14 @@ function saveSealed() {
     showToast('Article ajouté ✓', 'success');
   }
 
+  invalidateSealedCache();
   saveData(); closeModal(); renderSealed(); updateNavBadges();
 }
 
 function deleteSealed(id) {
   if (!confirm('Supprimer cet article ?')) return;
   APP.data.sealed = APP.data.sealed.filter(i => i.id !== id);
+  invalidateSealedCache();
   saveData(); renderSealed(); updateNavBadges();
   showToast('Article supprimé', 'info');
 }
@@ -370,8 +387,13 @@ function adjustQteRevente(delta) {
   if (!input) return;
   const current = parseInt(input.value) || 0;
   const stockEl = document.getElementById('sealed-stock');
-  const maxStock = stockEl ? parseInt(stockEl.value) || 99 : 99;
-  input.value = Math.max(0, Math.min(maxStock, current + delta));
+  const maxStock = stockEl ? (parseInt(stockEl.value) || 99) : 99;
+  const newVal = Math.max(0, Math.min(maxStock, current + delta));
+  input.value = newVal;
+  // Feedback visuel
+  input.style.transition = 'background 0.15s';
+  input.style.background = 'rgba(255,184,0,0.15)';
+  setTimeout(() => { input.style.background = ''; }, 200);
 }
 
 function toggleInvestFields() {

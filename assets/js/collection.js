@@ -1,7 +1,7 @@
 let sealedView = "table"; // table | grid | grid-large
 // ===== COLLECTION SCELLÉE =====
 let sealedSort = { key: 'nom', dir: 'asc' };
-let sealedFilters = { search: '', type: '', langue: '' };
+let sealedFilters = { search: '', type: '', langue: '', invest: false };
 let editingSealedId = null;
 
 function renderSealed() {
@@ -151,8 +151,9 @@ function renderSealedStats() {
 
 function getFilteredSealed() {
   let data = [...APP.data.sealed];
-  const { search, type, langue } = sealedFilters;
+  const { search, type, langue, invest } = sealedFilters;
   if (search) data = data.filter(i => i.nom.toLowerCase().includes(search.toLowerCase()));
+  if (invest)  data = data.filter(i => i.invest && i.qteRevente > 0);
   if (type) data = data.filter(i => i.type === type);
   if (langue) data = data.filter(i => i.langue === langue);
   if (sealedSort.key) data = sortTable(data, sealedSort.key, sealedSort.dir);
@@ -216,7 +217,7 @@ function renderSealedTable() {
           <button class="btn btn-ghost btn-sm btn-icon" onclick="changeStock('${item.id}', 1)" title="Ajouter un exemplaire">+</button>
         </div>
       </td>
-      <td style="font-weight:600">${formatPrice(item.prixAchat)}</td>
+      <td style="font-weight:600">${formatPrice(item.prixAchat)}${item.invest ? '<span title="À vendre" style="margin-left:6px;font-size:10px;background:rgba(255,184,0,0.15);border:1px solid rgba(255,184,0,0.3);color:#ffb800;padding:1px 6px;border-radius:10px;font-weight:700">💰 ×'+item.qteRevente+'</span>' : ''}</td>
       <td style="font-weight:600">${formatPrice(item.prixAchat * item.stock)}</td>
       <td>
         <div style="display:flex;align-items:center;gap:6px">
@@ -310,6 +311,9 @@ function editSealed(id) {
   document.getElementById('sealed-prix-marche').value = item.prixMarche || '';
   document.getElementById('sealed-stock').value = item.stock;
   document.getElementById('sealed-notes').value = item.notes || '';
+  document.getElementById('sealed-invest').checked  = item.invest || false;
+  document.getElementById('sealed-qte-revente').value = item.qteRevente || 0;
+  toggleInvestFields();
   const preview = document.getElementById('sealed-img-preview');
   if (item.image) {
     preview.innerHTML = `<img src="${item.image}" style="max-width:100%;max-height:200px;border-radius:8px">`;
@@ -326,7 +330,9 @@ function saveSealed() {
   const prixAchat = parseFloat(document.getElementById('sealed-prix-achat').value) || 0;
   const prixMarche = parseFloat(document.getElementById('sealed-prix-marche').value) || null;
   const stock = parseInt(document.getElementById('sealed-stock').value) || 1;
-  const notes = document.getElementById('sealed-notes').value.trim();
+  const notes       = document.getElementById('sealed-notes').value.trim();
+  const invest      = document.getElementById('sealed-invest').checked;
+  const qteRevente  = parseInt(document.getElementById('sealed-qte-revente').value) || 0;
   if (!nom) { showToast('Le nom est requis', 'error'); return; }
 
   if (editingSealedId) {
@@ -335,12 +341,14 @@ function saveSealed() {
       item.nom = nom; item.type = type; item.langue = langue;
       item.prixAchat = prixAchat; item.prixMarche = prixMarche;
       item.stock = stock; item.notes = notes;
+      item.invest = invest; item.qteRevente = qteRevente;
     }
     showToast('Article modifié ✓', 'success');
   } else {
     APP.data.sealed.push({
       id: genId('s'),
       nom, type, langue, prixAchat, prixMarche, stock, notes,
+      invest, qteRevente,
       image: null, dateAjout: new Date().toISOString().slice(0, 10)
     });
     showToast('Article ajouté ✓', 'success');
@@ -357,6 +365,25 @@ function deleteSealed(id) {
 }
 
 // Upload image sealed
+function toggleInvestFields() {
+  const checked = document.getElementById('sealed-invest')?.checked;
+  const wrap = document.getElementById('invest-fields-wrap');
+  if (wrap) wrap.style.display = checked ? 'block' : 'none';
+}
+
+function initSealedEvents() {
+  // Déjà dans initSealedEvents existant, on ajoute juste le filtre invest
+  const btnInvest = document.getElementById('filter-invest-toggle');
+  if (btnInvest) {
+    btnInvest.addEventListener('click', () => {
+      sealedFilters.invest = !sealedFilters.invest;
+      btnInvest.classList.toggle('active', sealedFilters.invest);
+      renderSealedCurrent();
+    });
+  }
+  document.getElementById('sealed-invest')?.addEventListener('change', toggleInvestFields);
+}
+
 function initSealedImageUpload() {
   const el = document.getElementById('sealed-img-preview');
   const inp = document.getElementById('sealed-img-input');

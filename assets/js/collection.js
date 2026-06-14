@@ -365,6 +365,15 @@ function deleteSealed(id) {
 }
 
 // Upload image sealed
+function adjustQteRevente(delta) {
+  const input = document.getElementById('sealed-qte-revente');
+  if (!input) return;
+  const current = parseInt(input.value) || 0;
+  const stockEl = document.getElementById('sealed-stock');
+  const maxStock = stockEl ? parseInt(stockEl.value) || 99 : 99;
+  input.value = Math.max(0, Math.min(maxStock, current + delta));
+}
+
 function toggleInvestFields() {
   const checked = document.getElementById('sealed-invest')?.checked;
   const wrap = document.getElementById('invest-fields-wrap');

@@ -1921,3 +1921,9 @@ td {
   border-color: rgba(255,184,0,0.35) !important;
   color: #ffb800 !important;
 }
+
+#filter-invest-toggle.active {
+  background: rgba(255,184,0,0.12) !important;
+  border-color: rgba(255,184,0,0.35) !important;
+  color: #ffb800 !important;
+}
